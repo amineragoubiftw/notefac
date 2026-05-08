@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trash2, Check } from "lucide-react";
-import { semesters, type ModuleGrades } from "@/lib/grade-data";
+import { Trash2, Check, Sparkles } from "lucide-react";
+import { universities, type ModuleGrades } from "@/lib/lmd-data";
+import { SelectionBar } from "@/components/SelectionBar";
 import { SemesterToggle } from "@/components/SemesterToggle";
 import { UECard } from "@/components/UECard";
 import { ResultsPanel } from "@/components/ResultsPanel";
@@ -23,24 +24,44 @@ export const Route = createFileRoute("/")({
   component: Index,
   head: () => ({
     meta: [
-      { title: "Calculateur de Moyenne — Université Tunisienne" },
-      { name: "description", content: "Calculez votre moyenne semestrielle, crédits ECTS et notes par UE selon le système universitaire tunisien." },
+      { title: "Calculateur LMD Tunisien — Moyennes & Crédits" },
+      { name: "description", content: "Calculateur universel de moyennes et crédits pour le système LMD tunisien. Sélectionnez votre université, institut et parcours." },
     ],
   }),
 });
 
-const STORAGE_KEY = "grade-calc:all-grades:v1";
+const PROFILE_KEY = "lmd-calc:profile:v1";
+const GRADES_KEY = "lmd-calc:grades:v1";
+
+interface Profile {
+  universityId: string;
+  instituteId: string;
+  majorId: string;
+}
+
+// grades scoped: majorId -> semesterName -> moduleName -> ModuleGrades
+type AllGrades = Record<string, Record<string, Record<string, ModuleGrades>>>;
 
 function Index() {
+  const [profile, setProfile] = useLocalStorage<Profile>(PROFILE_KEY, {
+    universityId: "",
+    instituteId: "",
+    majorId: "",
+  });
+  const [allGrades, setAllGrades, savedTick] = useLocalStorage<AllGrades>(GRADES_KEY, {});
   const [activeSemester, setActiveSemester] = useState(0);
-  const [allGrades, setAllGrades, savedTick] = useLocalStorage<
-    Record<string, Record<string, ModuleGrades>>
-  >(STORAGE_KEY, {});
   const [showSaved, setShowSaved] = useState(false);
 
-  const semester = semesters[activeSemester];
-  const semesterGrades = allGrades[semester.name] || {};
-  const maxCredits = semester.ues.reduce((s, ue) => s + ue.credits, 0);
+  const major = useMemo(() => {
+    const u = universities.find((x) => x.id === profile[0].universityId);
+    const i = u?.institutes.find((x) => x.id === profile[0].instituteId);
+    return i?.majors.find((x) => x.id === profile[0].majorId);
+  }, [profile]);
+
+  const semester = major?.semesters[activeSemester];
+  const semesterGrades =
+    (major && semester && allGrades[0][major.id]?.[semester.name]) || {};
+  const maxCredits = semester?.ues.reduce((s, ue) => s + ue.credits, 0) ?? 0;
 
   useEffect(() => {
     if (savedTick === 0) return;
@@ -49,36 +70,51 @@ function Index() {
     return () => clearTimeout(t);
   }, [savedTick]);
 
+  useEffect(() => {
+    setActiveSemester(0);
+  }, [profile[0].majorId]);
+
+  const handleSelectionChange = useCallback(
+    (sel: Profile) => setProfile(() => sel),
+    [setProfile]
+  );
+
   const handleGradeChange = useCallback(
     (moduleName: string, field: keyof ModuleGrades, value: string) => {
-      setAllGrades((prev) => ({
-        ...prev,
-        [semester.name]: {
-          ...(prev[semester.name] || {}),
-          [moduleName]: {
-            ...(prev[semester.name]?.[moduleName] || { examen: "", ds: "", cc: "" }),
-            [field]: value,
+      if (!major || !semester) return;
+      setAllGrades((prev) => {
+        const majorGrades = prev[major.id] || {};
+        const semGrades = majorGrades[semester.name] || {};
+        const moduleGrades = semGrades[moduleName] || { examen: "", ds: "", cc: "" };
+        return {
+          ...prev,
+          [major.id]: {
+            ...majorGrades,
+            [semester.name]: {
+              ...semGrades,
+              [moduleName]: { ...moduleGrades, [field]: value },
+            },
           },
-        },
-      }));
+        };
+      });
     },
-    [semester.name, setAllGrades]
+    [major, semester, setAllGrades]
   );
 
   const handleClearAll = useCallback(() => {
-    setAllGrades({});
-  }, [setAllGrades]);
+    setAllGrades(() => ({}));
+    setProfile(() => ({ universityId: "", instituteId: "", majorId: "" }));
+  }, [setAllGrades, setProfile]);
 
   return (
     <div className="min-h-screen mesh-gradient">
-      {/* Header */}
-      <header className="pt-10 pb-6 text-center relative">
+      <header className="pt-10 pb-4 text-center">
         <motion.h1
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-3xl md:text-4xl font-extrabold tracking-tight text-foreground"
         >
-          🎓 Calculateur de Moyenne
+          🎓 Calculateur LMD Tunisien
         </motion.h1>
         <motion.p
           initial={{ opacity: 0 }}
@@ -86,10 +122,9 @@ function Index() {
           transition={{ delay: 0.2 }}
           className="text-sm text-muted-foreground mt-2"
         >
-          Système universitaire tunisien — L1 Informatique
+          Universités · Établissements · Parcours · Moyennes & Crédits
         </motion.p>
 
-        {/* Auto-save indicator + Reset button row */}
         <div className="max-w-7xl mx-auto px-4 mt-5 flex items-center justify-center gap-3">
           <AnimatePresence>
             {showSaved && (
@@ -109,16 +144,14 @@ function Index() {
             <AlertDialogTrigger asChild>
               <button className="glass-card px-3 py-1.5 flex items-center gap-1.5 text-xs text-foreground hover:text-danger transition-colors">
                 <Trash2 className="w-3.5 h-3.5" />
-                <span>Clear All Data</span>
+                <span>Reset My Data</span>
               </button>
             </AlertDialogTrigger>
             <AlertDialogContent className="glass-card border-glass-border bg-transparent backdrop-blur-2xl">
               <AlertDialogHeader>
-                <AlertDialogTitle className="text-foreground">
-                  Are you sure?
-                </AlertDialogTitle>
+                <AlertDialogTitle className="text-foreground">Are you sure?</AlertDialogTitle>
                 <AlertDialogDescription className="text-muted-foreground">
-                  Are you sure you want to delete all saved grades? This cannot be undone.
+                  This will erase your saved profile and all grades. This action cannot be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -127,7 +160,7 @@ function Index() {
                   onClick={handleClearAll}
                   className="bg-danger text-white hover:bg-danger/90"
                 >
-                  Delete all
+                  Reset everything
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -135,46 +168,80 @@ function Index() {
         </div>
       </header>
 
-      {/* Semester Toggle */}
-      <div className="mb-8">
-        <SemesterToggle active={activeSemester} onChange={setActiveSemester} />
+      {/* Selection */}
+      <div className="max-w-5xl mx-auto px-4 mt-4">
+        <SelectionBar
+          universityId={profile[0].universityId}
+          instituteId={profile[0].instituteId}
+          majorId={profile[0].majorId}
+          onChange={handleSelectionChange}
+        />
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 pb-16 flex flex-col lg:flex-row gap-6">
-        {/* Form */}
-        <div className="flex-1 space-y-4">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={semester.name}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.3 }}
-              className="space-y-4"
-            >
-              {semester.ues.map((ue, i) => (
-                <UECard
-                  key={ue.name}
-                  ue={ue}
-                  index={i}
+      {/* Semester toggle + content */}
+      {major ? (
+        <>
+          <div className="my-8">
+            <SemesterToggle
+              semesters={major.semesters.map((s) => s.name)}
+              active={activeSemester}
+              onChange={setActiveSemester}
+            />
+          </div>
+
+          <div className="max-w-7xl mx-auto px-4 pb-16 flex flex-col lg:flex-row gap-6">
+            <div className="flex-1 space-y-4">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={`${major.id}-${semester?.name}`}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.3 }}
+                  className="space-y-4"
+                >
+                  {semester?.ues.map((ue, i) => (
+                    <UECard
+                      key={ue.name}
+                      ue={ue}
+                      index={i}
+                      grades={semesterGrades}
+                      onGradeChange={handleGradeChange}
+                    />
+                  ))}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+            <div className="lg:w-80 shrink-0">
+              {semester && (
+                <ResultsPanel
+                  ues={semester.ues}
                   grades={semesterGrades}
-                  onGradeChange={handleGradeChange}
+                  maxCredits={maxCredits}
                 />
-              ))}
-            </motion.div>
-          </AnimatePresence>
-        </div>
-
-        {/* Results */}
-        <div className="lg:w-80 shrink-0">
-          <ResultsPanel
-            ues={semester.ues}
-            grades={semesterGrades}
-            maxCredits={maxCredits}
-          />
-        </div>
-      </div>
+              )}
+            </div>
+          </div>
+        </>
+      ) : (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="max-w-2xl mx-auto px-4 mt-10 text-center"
+        >
+          <div className="glass-card p-10">
+            <Sparkles className="w-10 h-10 mx-auto text-primary mb-4" />
+            <h2 className="text-xl font-bold text-foreground mb-2">
+              Commencez par sélectionner votre parcours
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Choisissez votre université, votre établissement et votre spécialité
+              ci-dessus pour générer automatiquement le formulaire de notes.
+            </p>
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 }

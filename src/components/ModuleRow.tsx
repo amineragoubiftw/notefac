@@ -1,14 +1,17 @@
-import { type ModuleGrades, moduleFinalNote } from "@/lib/grade-data";
+import { type ModuleGrades, type ExamType, moduleFinalNote } from "@/lib/lmd-data";
 
 interface ModuleRowProps {
   name: string;
   coef: number;
+  examTypes: ExamType[];
   grades: ModuleGrades;
   onChange: (field: keyof ModuleGrades, value: string) => void;
 }
 
-export function ModuleRow({ name, coef, grades, onChange }: ModuleRowProps) {
-  const finalNote = moduleFinalNote(grades);
+const LABELS: Record<ExamType, string> = { examen: "Exam", ds: "DS", cc: "CC" };
+
+export function ModuleRow({ name, coef, examTypes, grades, onChange }: ModuleRowProps) {
+  const finalNote = moduleFinalNote(grades, examTypes);
 
   return (
     <div className="flex flex-wrap items-center gap-3 py-2.5">
@@ -17,10 +20,10 @@ export function ModuleRow({ name, coef, grades, onChange }: ModuleRowProps) {
         <span className="ml-2 text-xs text-muted-foreground">(Coef {coef})</span>
       </div>
       <div className="flex items-center gap-2">
-        {(["examen", "ds", "cc"] as const).map((field) => (
+        {examTypes.map((field) => (
           <div key={field} className="flex flex-col items-center gap-0.5">
             <label className="text-[10px] uppercase text-muted-foreground tracking-wider">
-              {field === "examen" ? "Exam" : field.toUpperCase()}
+              {LABELS[field]}
             </label>
             <input
               type="number"
