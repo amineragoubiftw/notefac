@@ -1,10 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Trash2, Check } from "lucide-react";
 import { semesters, type ModuleGrades } from "@/lib/grade-data";
 import { SemesterToggle } from "@/components/SemesterToggle";
 import { UECard } from "@/components/UECard";
 import { ResultsPanel } from "@/components/ResultsPanel";
+import { useLocalStorage } from "@/hooks/use-local-storage";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -16,13 +29,25 @@ export const Route = createFileRoute("/")({
   }),
 });
 
+const STORAGE_KEY = "grade-calc:all-grades:v1";
+
 function Index() {
   const [activeSemester, setActiveSemester] = useState(0);
-  const [allGrades, setAllGrades] = useState<Record<string, Record<string, ModuleGrades>>>({});
+  const [allGrades, setAllGrades, savedTick] = useLocalStorage<
+    Record<string, Record<string, ModuleGrades>>
+  >(STORAGE_KEY, {});
+  const [showSaved, setShowSaved] = useState(false);
 
   const semester = semesters[activeSemester];
   const semesterGrades = allGrades[semester.name] || {};
   const maxCredits = semester.ues.reduce((s, ue) => s + ue.credits, 0);
+
+  useEffect(() => {
+    if (savedTick === 0) return;
+    setShowSaved(true);
+    const t = setTimeout(() => setShowSaved(false), 1500);
+    return () => clearTimeout(t);
+  }, [savedTick]);
 
   const handleGradeChange = useCallback(
     (moduleName: string, field: keyof ModuleGrades, value: string) => {
@@ -37,13 +62,17 @@ function Index() {
         },
       }));
     },
-    [semester.name]
+    [semester.name, setAllGrades]
   );
+
+  const handleClearAll = useCallback(() => {
+    setAllGrades({});
+  }, [setAllGrades]);
 
   return (
     <div className="min-h-screen mesh-gradient">
       {/* Header */}
-      <header className="pt-10 pb-6 text-center">
+      <header className="pt-10 pb-6 text-center relative">
         <motion.h1
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -59,6 +88,51 @@ function Index() {
         >
           Système universitaire tunisien — L1 Informatique
         </motion.p>
+
+        {/* Auto-save indicator + Reset button row */}
+        <div className="max-w-7xl mx-auto px-4 mt-5 flex items-center justify-center gap-3">
+          <AnimatePresence>
+            {showSaved && (
+              <motion.div
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                className="glass-card px-3 py-1.5 flex items-center gap-1.5 text-xs text-success"
+              >
+                <Check className="w-3.5 h-3.5" />
+                <span>Auto-saved</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <button className="glass-card px-3 py-1.5 flex items-center gap-1.5 text-xs text-foreground hover:text-danger transition-colors">
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Clear All Data</span>
+              </button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="glass-card border-glass-border bg-transparent backdrop-blur-2xl">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-foreground">
+                  Are you sure?
+                </AlertDialogTitle>
+                <AlertDialogDescription className="text-muted-foreground">
+                  Are you sure you want to delete all saved grades? This cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel className="glass-card border-0">Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleClearAll}
+                  className="bg-danger text-white hover:bg-danger/90"
+                >
+                  Delete all
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </header>
 
       {/* Semester Toggle */}
