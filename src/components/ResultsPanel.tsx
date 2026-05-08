@@ -1,14 +1,14 @@
 import { motion } from "framer-motion";
 import {
-  type UE,
+  type UEDef,
   type ModuleGrades,
   ueAverage,
   semesterAverage,
   totalCredits,
-} from "@/lib/grade-data";
+} from "@/lib/lmd-data";
 
 interface ResultsPanelProps {
-  ues: UE[];
+  ues: UEDef[];
   grades: Record<string, ModuleGrades>;
   maxCredits: number;
 }
@@ -26,7 +26,6 @@ export function ResultsPanel({ ues, grades, maxCredits }: ResultsPanelProps) {
     >
       <h2 className="text-lg font-bold text-foreground mb-5">Résultats</h2>
 
-      {/* Semester Average */}
       <div className="text-center mb-6">
         <p className="text-xs uppercase tracking-widest text-muted-foreground mb-2">
           Moyenne Semestre
@@ -39,14 +38,13 @@ export function ResultsPanel({ ues, grades, maxCredits }: ResultsPanelProps) {
                 : "text-danger"
               : "text-muted-foreground"
           }`}
-          style={avg !== null && avg >= 10 ? { "--glow": "var(--success)" } as React.CSSProperties : undefined}
+          style={avg !== null && avg >= 10 ? ({ "--glow": "var(--success)" } as React.CSSProperties) : undefined}
         >
           {avg !== null ? avg.toFixed(2) : "--"}
         </p>
         <p className="text-xs text-muted-foreground mt-1">/20</p>
       </div>
 
-      {/* Credits */}
       <div className="text-center mb-6">
         <p className="text-xs uppercase tracking-widest text-muted-foreground mb-2">
           Crédits Validés
@@ -59,38 +57,31 @@ export function ResultsPanel({ ues, grades, maxCredits }: ResultsPanelProps) {
           <motion.div
             className="h-full rounded-full bg-primary"
             initial={{ width: 0 }}
-            animate={{ width: `${(credits / maxCredits) * 100}%` }}
+            animate={{ width: `${maxCredits ? (credits / maxCredits) * 100 : 0}%` }}
             transition={{ duration: 0.6, ease: "easeOut" }}
           />
         </div>
       </div>
 
-      {/* UE Breakdown */}
       <div className="space-y-2.5">
         <p className="text-xs uppercase tracking-widest text-muted-foreground">
           Détail par UE
         </p>
         {ues.map((ue) => {
-          const a = ueAverage(ue.modules, grades);
+          const a = ueAverage(ue, grades);
           const ok = a !== null && a >= 10;
           return (
             <div
               key={ue.name}
               className="flex items-center justify-between py-1.5 px-3 rounded-lg bg-glass"
             >
-              <span className="text-sm font-medium text-foreground">
+              <span className="text-sm font-medium text-foreground truncate pr-2">
                 {ue.name}
-                <span className="text-xs text-muted-foreground ml-1.5">
-                  ({ue.credits} cr)
-                </span>
+                <span className="text-xs text-muted-foreground ml-1.5">({ue.credits} cr)</span>
               </span>
               <span
-                className={`text-sm font-bold tabular-nums ${
-                  a !== null
-                    ? ok
-                      ? "text-success"
-                      : "text-danger"
-                    : "text-muted-foreground"
+                className={`text-sm font-bold tabular-nums shrink-0 ${
+                  a !== null ? (ok ? "text-success" : "text-danger") : "text-muted-foreground"
                 }`}
               >
                 {a !== null ? a.toFixed(2) : "--"}

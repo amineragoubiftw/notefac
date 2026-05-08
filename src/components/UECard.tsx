@@ -1,23 +1,23 @@
 import { motion } from "framer-motion";
-import { type UE, type ModuleGrades, ueAverage } from "@/lib/grade-data";
+import { type UEDef, type ModuleGrades, ueAverage } from "@/lib/lmd-data";
 import { ModuleRow } from "./ModuleRow";
 
 interface UECardProps {
-  ue: UE;
+  ue: UEDef;
   index: number;
   grades: Record<string, ModuleGrades>;
   onGradeChange: (moduleName: string, field: keyof ModuleGrades, value: string) => void;
 }
 
 export function UECard({ ue, index, grades, onGradeChange }: UECardProps) {
-  const avg = ueAverage(ue.modules, grades);
+  const avg = ueAverage(ue, grades);
   const acquired = avg !== null && avg >= 10;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.08, duration: 0.4 }}
+      transition={{ delay: index * 0.06, duration: 0.4 }}
       className="glass-card p-5"
     >
       <div className="flex items-center justify-between mb-3">
@@ -45,6 +45,7 @@ export function UECard({ ue, index, grades, onGradeChange }: UECardProps) {
             key={mod.name}
             name={mod.name}
             coef={mod.coef}
+            examTypes={mod.examTypes ?? ["examen", "ds", "cc"]}
             grades={grades[mod.name] || { examen: "", ds: "", cc: "" }}
             onChange={(field, value) => onGradeChange(mod.name, field, value)}
           />
