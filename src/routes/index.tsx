@@ -53,14 +53,14 @@ function Index() {
   const [showSaved, setShowSaved] = useState(false);
 
   const major = useMemo(() => {
-    const u = universities.find((x) => x.id === profile[0].universityId);
-    const i = u?.institutes.find((x) => x.id === profile[0].instituteId);
-    return i?.majors.find((x) => x.id === profile[0].majorId);
+    const u = universities.find((x) => x.id === profile.universityId);
+    const i = u?.institutes.find((x) => x.id === profile.instituteId);
+    return i?.majors.find((x) => x.id === profile.majorId);
   }, [profile]);
 
   const semester = major?.semesters[activeSemester];
   const semesterGrades =
-    (major && semester && allGrades[0][major.id]?.[semester.name]) || {};
+    (major && semester && allGrades[major.id]?.[semester.name]) || {};
   const maxCredits = semester?.ues.reduce((s, ue) => s + ue.credits, 0) ?? 0;
 
   useEffect(() => {
@@ -72,7 +72,7 @@ function Index() {
 
   useEffect(() => {
     setActiveSemester(0);
-  }, [profile[0].majorId]);
+  }, [profile.majorId]);
 
   const handleSelectionChange = useCallback(
     (sel: Profile) => setProfile(() => sel),
@@ -171,9 +171,9 @@ function Index() {
       {/* Selection */}
       <div className="max-w-5xl mx-auto px-4 mt-4">
         <SelectionBar
-          universityId={profile[0].universityId}
-          instituteId={profile[0].instituteId}
-          majorId={profile[0].majorId}
+          universityId={profile.universityId}
+          instituteId={profile.instituteId}
+          majorId={profile.majorId}
           onChange={handleSelectionChange}
         />
       </div>
