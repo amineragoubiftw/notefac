@@ -377,3 +377,4 @@ export function totalCredits(ues: UEDef[], grades: Record<string, ModuleGrades>)
   }
   return credits;
 }
+export * from "./institutionsData";
