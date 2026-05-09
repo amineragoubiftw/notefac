@@ -1,40 +1,29 @@
-import { type ModuleGrades, type Regime, moduleFinalNote, regimeFields, type ExamType } from "@/lib/lmd-data";
+import { type ModuleGrades, type ExamType, moduleFinalNote } from "@/lib/lmd-data";
 
 interface ModuleRowProps {
   name: string;
   coef: number;
-  regime: Regime;
+  examTypes: ExamType[];
   grades: ModuleGrades;
   onChange: (field: keyof ModuleGrades, value: string) => void;
 }
 
 const LABELS: Record<ExamType, string> = { examen: "Exam", ds: "DS", cc: "CC" };
 
-export function ModuleRow({ name, coef, regime, grades, onChange }: ModuleRowProps) {
-  const fields = regimeFields(regime);
-  const finalNote = moduleFinalNote(grades, regime);
+export function ModuleRow({ name, coef, examTypes, grades, onChange }: ModuleRowProps) {
+  const finalNote = moduleFinalNote(grades, examTypes);
 
   return (
     <div className="flex flex-wrap items-center gap-3 py-2.5">
       <div className="flex-1 min-w-[140px]">
         <span className="text-sm font-medium text-foreground">{name}</span>
         <span className="ml-2 text-xs text-muted-foreground">(Coef {coef})</span>
-        <span
-          className={`ml-2 text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded ${
-            regime === "CC"
-              ? "bg-primary/15 text-primary border border-primary/30"
-              : "bg-accent/15 text-accent border border-accent/30"
-          }`}
-          title={regime === "CC" ? "Contrôle Continu (100%)" : "Mixte (70/20/10)"}
-        >
-          {regime}
-        </span>
       </div>
       <div className="flex items-center gap-2">
-        {fields.map((field) => (
+        {examTypes.map((field) => (
           <div key={field} className="flex flex-col items-center gap-0.5">
             <label className="text-[10px] uppercase text-muted-foreground tracking-wider">
-              {regime === "CC" ? "Note CC" : LABELS[field]}
+              {LABELS[field]}
             </label>
             <input
               type="number"
