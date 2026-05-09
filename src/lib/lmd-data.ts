@@ -68,7 +68,7 @@ export const universities: UniversityDef[] = [
                     name: "UE2 — Algorithmique", coef: 3.5, credits: 7,
                     modules: [
                       { name: "Algorithmique", coef: 2, examTypes: FULL },
-                      { name: "Atelier programmation 1", coef: 1.5, examTypes: EXAM_DS },
+                      { name: "Atelier programmation 1", coef: 1.5, examTypes: FULL },
                     ],
                   },
                   {
@@ -88,8 +88,8 @@ export const universities: UniversityDef[] = [
                   {
                     name: "UE5 — Transversale", coef: 2, credits: 4,
                     modules: [
-                      { name: "Communication 1", coef: 1, examTypes: EXAM_DS },
-                      { name: "Anglais 1", coef: 1, examTypes: EXAM_DS },
+                      { name: "Communication 1", coef: 1, examTypes: FULL },
+                      { name: "Anglais 1", coef: 1, examTypes: FULL },
                     ],
                   },
                 ],
@@ -118,17 +118,17 @@ export const universities: UniversityDef[] = [
                   {
                     name: "UE4 — Programmation", coef: 3.5, credits: 7,
                     modules: [
-                      { name: "Python", coef: 1, examTypes: EXAM_DS },
+                      { name: "Python", coef: 1, examTypes: FULL },
                       { name: "Algorithme", coef: 1.5, examTypes: FULL },
-                      { name: "Atelier programmation 2", coef: 1, examTypes: EXAM_DS },
+                      { name: "Atelier programmation 2", coef: 1, examTypes: FULL },
                     ],
                   },
                   {
                     name: "UE5 — Transversale", coef: 3, credits: 6,
                     modules: [
-                      { name: "Communication 2", coef: 1, examTypes: EXAM_DS },
-                      { name: "Anglais 2", coef: 1, examTypes: EXAM_DS },
-                      { name: "Culture", coef: 1, examTypes: EXAM_DS },
+                      { name: "Communication 2", coef: 1, examTypes: FULL },
+                      { name: "Anglais 2", coef: 1, examTypes: FULL },
+                      { name: "Culture", coef: 1, examTypes: FULL },
                     ],
                   },
                 ],
@@ -177,13 +177,13 @@ export const universities: UniversityDef[] = [
                   },
                   {
                     name: "UE4 — Informatique", coef: 2, credits: 4,
-                    modules: [{ name: "Programmation C", coef: 2, examTypes: EXAM_DS }],
+                    modules: [{ name: "Programmation C", coef: 2, examTypes: FULL }],
                   },
                   {
                     name: "UE5 — Langues", coef: 2, credits: 4,
                     modules: [
-                      { name: "Anglais", coef: 1, examTypes: EXAM_DS },
-                      { name: "Français", coef: 1, examTypes: EXAM_DS },
+                      { name: "Anglais", coef: 1, examTypes: FULL },
+                      { name: "Français", coef: 1, examTypes: FULL },
                     ],
                   },
                 ],
@@ -216,8 +216,8 @@ export const universities: UniversityDef[] = [
                   {
                     name: "UE5 — Transversale", coef: 2, credits: 4,
                     modules: [
-                      { name: "Anglais 2", coef: 1, examTypes: EXAM_DS },
-                      { name: "Culture & entrepreneuriat", coef: 1, examTypes: EXAM_DS },
+                      { name: "Anglais 2", coef: 1, examTypes: FULL },
+                      { name: "Culture & entrepreneuriat", coef: 1, examTypes: FULL },
                     ],
                   },
                 ],
@@ -263,13 +263,13 @@ export const universities: UniversityDef[] = [
                   },
                   {
                     name: "UE4 — Droit", coef: 2, credits: 4,
-                    modules: [{ name: "Introduction au droit", coef: 2, examTypes: EXAM_DS }],
+                    modules: [{ name: "Introduction au droit", coef: 2, examTypes: FULL }],
                   },
                   {
                     name: "UE5 — Langues", coef: 2, credits: 4,
                     modules: [
-                      { name: "Anglais", coef: 1, examTypes: EXAM_DS },
-                      { name: "Communication", coef: 1, examTypes: EXAM_DS },
+                      { name: "Anglais", coef: 1, examTypes: FULL },
+                      { name: "Communication", coef: 1, examTypes: FULL },
                     ],
                   },
                 ],
@@ -294,13 +294,13 @@ export const universities: UniversityDef[] = [
                   },
                   {
                     name: "UE4 — Informatique", coef: 2, credits: 4,
-                    modules: [{ name: "Bureautique & TIC", coef: 2, examTypes: EXAM_DS }],
+                    modules: [{ name: "Bureautique & TIC", coef: 2, examTypes: FULL }],
                   },
                   {
                     name: "UE5 — Transversale", coef: 2, credits: 4,
                     modules: [
-                      { name: "Anglais des affaires", coef: 1, examTypes: EXAM_DS },
-                      { name: "Techniques d'expression", coef: 1, examTypes: EXAM_DS },
+                      { name: "Anglais des affaires", coef: 1, examTypes: FULL },
+                      { name: "Techniques d'expression", coef: 1, examTypes: FULL },
                     ],
                   },
                 ],
