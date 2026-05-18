@@ -325,7 +325,7 @@ export function moduleFinalNote(g: ModuleGrades, examTypes: ExamType[] = ["exame
   const parsed: Partial<Record<ExamType, number>> = {};
   let any = false;
   for (const t of examTypes) {
-    const v = parseFloat(g[t]);
+    const v = parseFloat(g[t] ?? "");
     if (!isNaN(v)) {
       parsed[t] = clamp(v);
       any = true;
