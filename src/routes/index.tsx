@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trash2, Check, Sparkles } from "lucide-react";
-import { universities, semesterAverage, totalCredits, type ModuleGrades } from "@/lib/lmd-data";
+import { universities, type ModuleGrades } from "@/lib/lmd-data";
 import { SelectionBar } from "@/components/SelectionBar";
 import { SemesterToggle } from "@/components/SemesterToggle";
 import { UECard } from "@/components/UECard";
@@ -62,24 +62,6 @@ function Index() {
   const semesterGrades =
     (major && semester && allGrades[major.id]?.[semester.name]) || {};
   const maxCredits = semester?.ues.reduce((s, ue) => s + ue.credits, 0) ?? 0;
-
-  const overall = useMemo(() => {
-    if (!major) return null;
-    const sems = major.semesters.map((s) => {
-      const g = allGrades[major.id]?.[s.name] || {};
-      return {
-        name: s.name,
-        avg: semesterAverage(s.ues, g),
-        credits: totalCredits(s.ues, g),
-        max: s.ues.reduce((a, ue) => a + ue.credits, 0),
-      };
-    });
-    const valid = sems.filter((s) => s.avg !== null) as { name: string; avg: number; credits: number; max: number }[];
-    const general = valid.length ? valid.reduce((a, s) => a + s.avg, 0) / valid.length : null;
-    const totalCr = sems.reduce((a, s) => a + s.credits, 0);
-    const maxCr = sems.reduce((a, s) => a + s.max, 0);
-    return { sems, general, totalCr, maxCr };
-  }, [major, allGrades]);
 
   useEffect(() => {
     if (savedTick === 0) return;
@@ -240,95 +222,6 @@ function Index() {
               )}
             </div>
           </div>
-
-          {overall && (
-            <div className="max-w-7xl mx-auto px-4 pb-16">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-                className="glass-card p-6 md:p-8"
-              >
-                <h2 className="text-lg font-bold text-foreground mb-6 text-center">
-                  Moyenne Générale & Crédits Totaux
-                </h2>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                  <div className="text-center">
-                    <p className="text-xs uppercase tracking-widest text-muted-foreground mb-2">
-                      Moyenne Générale ({overall.sems.map((_, i) => `S${i + 1}`).join("+")})/{overall.sems.length}
-                    </p>
-                    <p
-                      className={`text-6xl font-extrabold tabular-nums ${
-                        overall.general !== null
-                          ? overall.general >= 10
-                            ? "text-success glow-text"
-                            : "text-danger"
-                          : "text-muted-foreground"
-                      }`}
-                      style={
-                        overall.general !== null && overall.general >= 10
-                          ? ({ "--glow": "var(--success)" } as React.CSSProperties)
-                          : undefined
-                      }
-                    >
-                      {overall.general !== null ? overall.general.toFixed(2) : "--"}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">/20</p>
-                  </div>
-
-                  <div className="text-center">
-                    <p className="text-xs uppercase tracking-widest text-muted-foreground mb-2">
-                      Crédits Totaux
-                    </p>
-                    <p className="text-6xl font-extrabold tabular-nums text-foreground">
-                      {overall.totalCr}
-                      <span className="text-2xl text-muted-foreground font-normal">
-                        /{overall.maxCr}
-                      </span>
-                    </p>
-                    <div className="mt-3 mx-auto max-w-xs h-2 rounded-full bg-glass overflow-hidden">
-                      <motion.div
-                        className="h-full rounded-full bg-primary"
-                        initial={{ width: 0 }}
-                        animate={{
-                          width: `${overall.maxCr ? (overall.totalCr / overall.maxCr) * 100 : 0}%`,
-                        }}
-                        transition={{ duration: 0.6, ease: "easeOut" }}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4 border-t border-glass-border">
-                  {overall.sems.map((s) => (
-                    <div
-                      key={s.name}
-                      className="flex items-center justify-between py-2 px-4 rounded-lg bg-glass"
-                    >
-                      <span className="text-sm font-medium text-foreground">{s.name}</span>
-                      <div className="flex items-center gap-4">
-                        <span
-                          className={`text-sm font-bold tabular-nums ${
-                            s.avg !== null
-                              ? s.avg >= 10
-                                ? "text-success"
-                                : "text-danger"
-                              : "text-muted-foreground"
-                          }`}
-                        >
-                          {s.avg !== null ? s.avg.toFixed(2) : "--"}
-                        </span>
-                        <span className="text-xs text-muted-foreground tabular-nums">
-                          {s.credits}/{s.max} cr
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-            </div>
-          )}
         </>
       ) : (
         <motion.div
