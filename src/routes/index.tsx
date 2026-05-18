@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trash2, Check, Sparkles } from "lucide-react";
-import { universities, type ModuleGrades } from "@/lib/lmd-data";
+import { universities, semesterAverage, totalCredits, type ModuleGrades } from "@/lib/lmd-data";
 import { SelectionBar } from "@/components/SelectionBar";
 import { SemesterToggle } from "@/components/SemesterToggle";
 import { UECard } from "@/components/UECard";
