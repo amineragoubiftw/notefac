@@ -39,6 +39,7 @@ export interface UniversityDef {
 
 // Default exam mix (Examen 70 / DS 20 / CC 10)
 const FULL: ExamType[] = ["examen", "ds", "cc"];
+const TRANS: ExamType[] = ["ds1", "ds2", "cc"];
 const EXAM_DS: ExamType[] = ["examen", "ds"];
 
 export const universities: UniversityDef[] = [
