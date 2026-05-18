@@ -1,4 +1,4 @@
-export type ExamType = "examen" | "ds" | "cc";
+export type ExamType = "examen" | "ds" | "cc" | "ds1" | "ds2";
 
 export interface ModuleDef {
   name: string;
