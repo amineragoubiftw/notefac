@@ -63,6 +63,24 @@ function Index() {
     (major && semester && allGrades[major.id]?.[semester.name]) || {};
   const maxCredits = semester?.ues.reduce((s, ue) => s + ue.credits, 0) ?? 0;
 
+  const overall = useMemo(() => {
+    if (!major) return null;
+    const sems = major.semesters.map((s) => {
+      const g = allGrades[major.id]?.[s.name] || {};
+      return {
+        name: s.name,
+        avg: semesterAverage(s.ues, g),
+        credits: totalCredits(s.ues, g),
+        max: s.ues.reduce((a, ue) => a + ue.credits, 0),
+      };
+    });
+    const valid = sems.filter((s) => s.avg !== null) as { name: string; avg: number; credits: number; max: number }[];
+    const general = valid.length ? valid.reduce((a, s) => a + s.avg, 0) / valid.length : null;
+    const totalCr = sems.reduce((a, s) => a + s.credits, 0);
+    const maxCr = sems.reduce((a, s) => a + s.max, 0);
+    return { sems, general, totalCr, maxCr };
+  }, [major, allGrades]);
+
   useEffect(() => {
     if (savedTick === 0) return;
     setShowSaved(true);
