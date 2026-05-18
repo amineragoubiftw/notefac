@@ -85,7 +85,7 @@ function Index() {
       setAllGrades((prev) => {
         const majorGrades = prev[major.id] || {};
         const semGrades = majorGrades[semester.name] || {};
-        const moduleGrades = semGrades[moduleName] || { examen: "", ds: "", cc: "" };
+        const moduleGrades: ModuleGrades = semGrades[moduleName] || {};
         return {
           ...prev,
           [major.id]: {
