@@ -89,8 +89,8 @@ export const universities: UniversityDef[] = [
                   {
                     name: "UE5 — Transversale", coef: 2, credits: 4,
                     modules: [
-                      { name: "Communication 1", coef: 1, examTypes: FULL },
-                      { name: "Anglais 1", coef: 1, examTypes: FULL },
+                      { name: "Communication 1", coef: 1, examTypes: TRANS },
+                      { name: "Anglais 1", coef: 1, examTypes: TRANS },
                     ],
                   },
                 ],
@@ -127,9 +127,9 @@ export const universities: UniversityDef[] = [
                   {
                     name: "UE5 — Transversale", coef: 3, credits: 6,
                     modules: [
-                      { name: "Communication 2", coef: 1, examTypes: FULL },
-                      { name: "Anglais 2", coef: 1, examTypes: FULL },
-                      { name: "Culture", coef: 1, examTypes: FULL },
+                      { name: "Communication 2", coef: 1, examTypes: TRANS },
+                      { name: "Anglais 2", coef: 1, examTypes: TRANS },
+                      { name: "Culture", coef: 1, examTypes: TRANS },
                     ],
                   },
                 ],
@@ -217,8 +217,8 @@ export const universities: UniversityDef[] = [
                   {
                     name: "UE5 — Transversale", coef: 2, credits: 4,
                     modules: [
-                      { name: "Anglais 2", coef: 1, examTypes: FULL },
-                      { name: "Culture & entrepreneuriat", coef: 1, examTypes: FULL },
+                      { name: "Anglais 2", coef: 1, examTypes: TRANS },
+                      { name: "Culture & entrepreneuriat", coef: 1, examTypes: TRANS },
                     ],
                   },
                 ],
@@ -300,8 +300,8 @@ export const universities: UniversityDef[] = [
                   {
                     name: "UE5 — Transversale", coef: 2, credits: 4,
                     modules: [
-                      { name: "Anglais des affaires", coef: 1, examTypes: FULL },
-                      { name: "Techniques d'expression", coef: 1, examTypes: FULL },
+                      { name: "Anglais des affaires", coef: 1, examTypes: TRANS },
+                      { name: "Techniques d'expression", coef: 1, examTypes: TRANS },
                     ],
                   },
                 ],
