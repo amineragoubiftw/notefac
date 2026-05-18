@@ -313,13 +313,13 @@ export const universities: UniversityDef[] = [
   },
 ];
 
-export type ModuleGrades = { examen: string; ds: string; cc: string };
+export type ModuleGrades = Partial<Record<ExamType, string>>;
 
 export function clamp(v: number): number {
   return Math.min(20, Math.max(0, v));
 }
 
-const WEIGHTS: Record<ExamType, number> = { examen: 0.7, ds: 0.2, cc: 0.1 };
+const WEIGHTS: Record<ExamType, number> = { examen: 0.7, ds: 0.2, cc: 0.1, ds1: 0.45, ds2: 0.45 };
 
 export function moduleFinalNote(g: ModuleGrades, examTypes: ExamType[] = ["examen", "ds", "cc"]): number | null {
   const parsed: Partial<Record<ExamType, number>> = {};
