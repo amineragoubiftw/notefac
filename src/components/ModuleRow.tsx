@@ -8,7 +8,7 @@ interface ModuleRowProps {
   onChange: (field: keyof ModuleGrades, value: string) => void;
 }
 
-const LABELS: Record<ExamType, string> = { examen: "Exam", ds: "DS", cc: "CC" };
+const LABELS: Record<ExamType, string> = { examen: "Exam", ds: "DS", cc: "CC", ds1: "DS1", ds2: "DS2" };
 
 export function ModuleRow({ name, coef, examTypes, grades, onChange }: ModuleRowProps) {
   const finalNote = moduleFinalNote(grades, examTypes);
@@ -31,7 +31,7 @@ export function ModuleRow({ name, coef, examTypes, grades, onChange }: ModuleRow
               max={20}
               step={0.25}
               placeholder="--"
-              value={grades[field]}
+              value={grades[field] ?? ""}
               onChange={(e) => onChange(field, e.target.value)}
               className="glass-input w-16 text-center tabular-nums"
             />

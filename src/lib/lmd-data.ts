@@ -1,4 +1,4 @@
-export type ExamType = "examen" | "ds" | "cc";
+export type ExamType = "examen" | "ds" | "cc" | "ds1" | "ds2";
 
 export interface ModuleDef {
   name: string;
@@ -39,6 +39,7 @@ export interface UniversityDef {
 
 // Default exam mix (Examen 70 / DS 20 / CC 10)
 const FULL: ExamType[] = ["examen", "ds", "cc"];
+const TRANS: ExamType[] = ["ds1", "ds2", "cc"];
 const EXAM_DS: ExamType[] = ["examen", "ds"];
 
 export const universities: UniversityDef[] = [
@@ -88,8 +89,8 @@ export const universities: UniversityDef[] = [
                   {
                     name: "UE5 — Transversale", coef: 2, credits: 4,
                     modules: [
-                      { name: "Communication 1", coef: 1, examTypes: FULL },
-                      { name: "Anglais 1", coef: 1, examTypes: FULL },
+                      { name: "Communication 1", coef: 1, examTypes: TRANS },
+                      { name: "Anglais 1", coef: 1, examTypes: TRANS },
                     ],
                   },
                 ],
@@ -126,9 +127,9 @@ export const universities: UniversityDef[] = [
                   {
                     name: "UE5 — Transversale", coef: 3, credits: 6,
                     modules: [
-                      { name: "Communication 2", coef: 1, examTypes: FULL },
-                      { name: "Anglais 2", coef: 1, examTypes: FULL },
-                      { name: "Culture", coef: 1, examTypes: FULL },
+                      { name: "Communication 2", coef: 1, examTypes: TRANS },
+                      { name: "Anglais 2", coef: 1, examTypes: TRANS },
+                      { name: "Culture", coef: 1, examTypes: TRANS },
                     ],
                   },
                 ],
@@ -216,8 +217,8 @@ export const universities: UniversityDef[] = [
                   {
                     name: "UE5 — Transversale", coef: 2, credits: 4,
                     modules: [
-                      { name: "Anglais 2", coef: 1, examTypes: FULL },
-                      { name: "Culture & entrepreneuriat", coef: 1, examTypes: FULL },
+                      { name: "Anglais 2", coef: 1, examTypes: TRANS },
+                      { name: "Culture & entrepreneuriat", coef: 1, examTypes: TRANS },
                     ],
                   },
                 ],
@@ -299,8 +300,8 @@ export const universities: UniversityDef[] = [
                   {
                     name: "UE5 — Transversale", coef: 2, credits: 4,
                     modules: [
-                      { name: "Anglais des affaires", coef: 1, examTypes: FULL },
-                      { name: "Techniques d'expression", coef: 1, examTypes: FULL },
+                      { name: "Anglais des affaires", coef: 1, examTypes: TRANS },
+                      { name: "Techniques d'expression", coef: 1, examTypes: TRANS },
                     ],
                   },
                 ],
@@ -313,19 +314,19 @@ export const universities: UniversityDef[] = [
   },
 ];
 
-export type ModuleGrades = { examen: string; ds: string; cc: string };
+export type ModuleGrades = Partial<Record<ExamType, string>>;
 
 export function clamp(v: number): number {
   return Math.min(20, Math.max(0, v));
 }
 
-const WEIGHTS: Record<ExamType, number> = { examen: 0.7, ds: 0.2, cc: 0.1 };
+const WEIGHTS: Record<ExamType, number> = { examen: 0.7, ds: 0.2, cc: 0.1, ds1: 0.45, ds2: 0.45 };
 
 export function moduleFinalNote(g: ModuleGrades, examTypes: ExamType[] = ["examen", "ds", "cc"]): number | null {
   const parsed: Partial<Record<ExamType, number>> = {};
   let any = false;
   for (const t of examTypes) {
-    const v = parseFloat(g[t]);
+    const v = parseFloat(g[t] ?? "");
     if (!isNaN(v)) {
       parsed[t] = clamp(v);
       any = true;
