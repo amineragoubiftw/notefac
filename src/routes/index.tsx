@@ -256,7 +256,7 @@ function Index() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                   <div className="text-center">
                     <p className="text-xs uppercase tracking-widest text-muted-foreground mb-2">
-                      Moyenne Générale ({overall.sems.map((_, i) => `S${i + 1}`).join("+")})/{overall.sems.length}
+                      Moyenne Générale
                     </p>
                     <p
                       className={`text-6xl font-extrabold tabular-nums ${
