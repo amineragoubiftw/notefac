@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trash2, Check, Sparkles } from "lucide-react";
-import { universities, type ModuleGrades } from "@/lib/lmd-data";
+import { universities, type ModuleGrades, type MajorDef, generalAverage, generalCredits } from "@/lib/lmd-data";
 import { SelectionBar } from "@/components/SelectionBar";
 import { SemesterToggle } from "@/components/SemesterToggle";
 import { UECard } from "@/components/UECard";
@@ -222,6 +222,8 @@ function Index() {
               )}
             </div>
           </div>
+
+          {major && <GeneralSummary major={major} gradesByMajor={allGrades[major.id] || {}} />}
         </>
       ) : (
         <motion.div
@@ -243,5 +245,80 @@ function Index() {
         </motion.div>
       )}
     </div>
+  );
+}
+
+function GeneralSummary({
+  major,
+  gradesByMajor,
+}: {
+  major: MajorDef;
+  gradesByMajor: Record<string, Record<string, ModuleGrades>>;
+}) {
+  const avg = generalAverage(major, gradesByMajor);
+  const { earned, max } = generalCredits(major, gradesByMajor);
+  const pct = max ? (earned / max) * 100 : 0;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="max-w-7xl mx-auto px-4 pb-16"
+    >
+      <div className="glass-card p-6 md:p-8">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-lg md:text-xl font-bold text-foreground">
+            🏆 Résultats Généraux — {major.name}
+          </h2>
+          <span className="text-xs text-muted-foreground">
+            Tous les semestres
+          </span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="text-center">
+            <p className="text-xs uppercase tracking-widest text-muted-foreground mb-2">
+              Moyenne Générale
+            </p>
+            <p
+              className={`text-5xl md:text-6xl font-extrabold tabular-nums ${
+                avg !== null
+                  ? avg >= 10
+                    ? "text-success glow-text"
+                    : "text-danger"
+                  : "text-muted-foreground"
+              }`}
+              style={
+                avg !== null && avg >= 10
+                  ? ({ "--glow": "var(--success)" } as React.CSSProperties)
+                  : undefined
+              }
+            >
+              {avg !== null ? avg.toFixed(2) : "--"}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">/20</p>
+          </div>
+          <div className="text-center">
+            <p className="text-xs uppercase tracking-widest text-muted-foreground mb-2">
+              Crédits Totaux
+            </p>
+            <p className="text-5xl md:text-6xl font-extrabold tabular-nums text-foreground">
+              {earned}
+              <span className="text-2xl text-muted-foreground font-normal">
+                /{max}
+              </span>
+            </p>
+            <div className="mt-3 h-2 rounded-full bg-glass overflow-hidden max-w-xs mx-auto">
+              <motion.div
+                className="h-full rounded-full bg-primary"
+                initial={{ width: 0 }}
+                animate={{ width: `${pct}%` }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
   );
 }
