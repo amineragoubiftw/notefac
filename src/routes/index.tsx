@@ -222,6 +222,8 @@ function Index() {
               )}
             </div>
           </div>
+
+          {major && <GeneralSummary major={major} gradesByMajor={allGrades[major.id] || {}} />}
         </>
       ) : (
         <motion.div
