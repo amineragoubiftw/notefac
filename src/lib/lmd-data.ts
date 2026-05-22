@@ -387,3 +387,38 @@ export function totalCredits(ues: UEDef[], grades: Record<string, ModuleGrades>)
   }
   return credits;
 }
+
+export function maxCreditsForSemester(ues: UEDef[]): number {
+  return ues.reduce((s, ue) => s + ue.credits, 0);
+}
+
+export function generalAverage(
+  major: MajorDef,
+  gradesByMajor: Record<string, Record<string, ModuleGrades>>
+): number | null {
+  let w = 0, c = 0, any = false;
+  for (const sem of major.semesters) {
+    const semGrades = gradesByMajor?.[sem.name] || {};
+    const a = semesterAverage(sem.ues, semGrades);
+    if (a === null) continue;
+    any = true;
+    const credits = maxCreditsForSemester(sem.ues);
+    w += a * credits;
+    c += credits;
+  }
+  if (!any || c === 0) return null;
+  return w / c;
+}
+
+export function generalCredits(
+  major: MajorDef,
+  gradesByMajor: Record<string, Record<string, ModuleGrades>>
+): { earned: number; max: number } {
+  let earned = 0, max = 0;
+  for (const sem of major.semesters) {
+    max += maxCreditsForSemester(sem.ues);
+    const semGrades = gradesByMajor?.[sem.name] || {};
+    earned += totalCredits(sem.ues, semGrades);
+  }
+  return { earned, max };
+}
