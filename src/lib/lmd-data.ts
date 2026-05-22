@@ -320,9 +320,18 @@ export function clamp(v: number): number {
   return Math.min(20, Math.max(0, v));
 }
 
-const WEIGHTS: Record<ExamType, number> = { examen: 0.7, ds: 0.2, cc: 0.1, ds1: 0.45, ds2: 0.45 };
+const WEIGHTS_FULL: Partial<Record<ExamType, number>> = { examen: 0.7, ds: 0.2, cc: 0.1 };
+const WEIGHTS_TRANS: Partial<Record<ExamType, number>> = { ds1: 0.4, ds2: 0.4, cc: 0.2 };
+const WEIGHTS_EXAM_DS: Partial<Record<ExamType, number>> = { examen: 0.7, ds: 0.3 };
+
+function weightsFor(examTypes: ExamType[]): Partial<Record<ExamType, number>> {
+  if (examTypes.includes("ds1") || examTypes.includes("ds2")) return WEIGHTS_TRANS;
+  if (!examTypes.includes("cc")) return WEIGHTS_EXAM_DS;
+  return WEIGHTS_FULL;
+}
 
 export function moduleFinalNote(g: ModuleGrades, examTypes: ExamType[] = ["examen", "ds", "cc"]): number | null {
+  const W = weightsFor(examTypes);
   const parsed: Partial<Record<ExamType, number>> = {};
   let any = false;
   for (const t of examTypes) {
@@ -333,13 +342,13 @@ export function moduleFinalNote(g: ModuleGrades, examTypes: ExamType[] = ["exame
     }
   }
   if (!any) return null;
-  const totalWeight = examTypes.reduce((s, t) => s + WEIGHTS[t], 0);
+  const totalWeight = examTypes.reduce((s, t) => s + (W[t] ?? 0), 0);
   let sum = 0;
   for (const t of examTypes) {
     const v = parsed[t] ?? 0;
-    sum += v * WEIGHTS[t];
+    sum += v * (W[t] ?? 0);
   }
-  return sum / totalWeight;
+  return totalWeight ? sum / totalWeight : null;
 }
 
 export function ueAverage(ue: UEDef, grades: Record<string, ModuleGrades>): number | null {
