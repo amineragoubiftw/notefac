@@ -252,7 +252,7 @@ function GeneralSummary({
   major,
   gradesByMajor,
 }: {
-  major: NonNullable<ReturnType<typeof universities[number]["institutes"][number]["majors"][number]>> | any;
+  major: MajorDef;
   gradesByMajor: Record<string, Record<string, ModuleGrades>>;
 }) {
   const avg = generalAverage(major, gradesByMajor);
