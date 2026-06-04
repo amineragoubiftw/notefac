@@ -7,7 +7,7 @@ import { SelectionBar } from "@/components/SelectionBar";
 import { SemesterToggle } from "@/components/SemesterToggle";
 import { UECard } from "@/components/UECard";
 import { ResultsPanel } from "@/components/ResultsPanel";
-import { AmbientBackground } from "@/components/AmbientBackground";
+import { WaterBackground } from "@/components/WaterBackground";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import {
   AlertDialog,
@@ -109,7 +109,7 @@ function Index() {
 
   return (
     <div className="min-h-screen mesh-gradient relative">
-      <AmbientBackground />
+      <WaterBackground />
       <header className="pt-10 pb-4 text-center">
         <motion.h1
           initial={{ opacity: 0, y: -20 }}
