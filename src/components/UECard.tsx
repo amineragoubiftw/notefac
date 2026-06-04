@@ -18,7 +18,7 @@ export function UECard({ ue, index, grades, onGradeChange }: UECardProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.06, duration: 0.4 }}
-      className="glass-card p-5"
+      className="glass-card hover-lift p-5"
     >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
