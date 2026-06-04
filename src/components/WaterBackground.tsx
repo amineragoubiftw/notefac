@@ -1,272 +1,258 @@
 import { useEffect, useRef, useState } from "react";
+import * as THREE from "three";
 
 /**
- * GPU-accelerated "liquid water behind frosted glass" background.
- * - Fullscreen WebGL fragment shader (no deps)
- * - Multi-octave flow noise for organic motion
- * - Cursor parallax + ripple
- * - Respects prefers-reduced-motion
- * - DPR clamped on low-perf devices
- * - Client-only mount (avoids SSR hydration mismatch)
+ * Animated liquid water background — Three.js + custom GLSL shader.
+ *
+ * Tech:
+ *  - Three.js WebGLRenderer (GPU-accelerated)
+ *  - Fullscreen plane + ShaderMaterial (custom fragment shader)
+ *  - Procedural multi-octave domain-warped fbm noise → non-repeating motion
+ *  - Continuous requestAnimationFrame loop driving u_time
+ *
+ * Performance:
+ *  - DPR clamped (1.5 desktop / 1 on coarse-pointer or <=4 cores)
+ *  - On low-perf devices, render loop throttled to ~45 FPS
+ *  - Pauses when document is hidden
+ *  - Honors prefers-reduced-motion (single static frame)
+ *  - Listens for THREE webglcontextlost to restart cleanly
+ *
+ * SSR-safe: canvas mounts only after client hydration.
  */
 export function WaterBackground() {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const hostRef = useRef<HTMLDivElement | null>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     if (!mounted) return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    const host = hostRef.current;
+    if (!host) return;
 
-    const gl =
-      (canvas.getContext("webgl2", { antialias: false, alpha: true, premultipliedAlpha: true }) as WebGL2RenderingContext | null) ||
-      (canvas.getContext("webgl", { antialias: false, alpha: true, premultipliedAlpha: true }) as WebGLRenderingContext | null);
-    if (!gl) return;
-
-    const isWebGL2 = "drawBuffers" in gl;
-
-    const reduceMotion =
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    // Low-perf heuristic: small CPU count or coarse pointer (mobile) → cap quality
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
     const lowPerf =
       (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
       window.matchMedia("(pointer: coarse)").matches;
-
     const maxDpr = lowPerf ? 1 : 1.5;
 
-    const vert = `
-      attribute vec2 a_pos;
-      void main() { gl_Position = vec4(a_pos, 0.0, 1.0); }
-    `;
+    const renderer = new THREE.WebGLRenderer({
+      antialias: false,
+      alpha: true,
+      premultipliedAlpha: true,
+      powerPreference: "high-performance",
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxDpr));
+    renderer.setSize(window.innerWidth, window.innerHeight, false);
+    renderer.setClearColor(0x000000, 0);
+    const canvas = renderer.domElement;
+    canvas.style.display = "block";
+    canvas.style.width = "100%";
+    canvas.style.height = "100%";
+    host.appendChild(canvas);
 
-    // Flow-noise water shader. Keeps colors subtle (blue/cyan/violet/white).
-    const frag = `
-      precision highp float;
-      uniform vec2  u_res;
-      uniform float u_time;
-      uniform vec2  u_mouse;     // 0..1
-      uniform vec2  u_ripple;    // 0..1
-      uniform float u_rippleAge; // seconds since last ripple
-      uniform float u_quality;   // 0..1
+    const scene = new THREE.Scene();
+    const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
-      // hash / noise / fbm
-      float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-      float noise(vec2 p){
-        vec2 i = floor(p);
-        vec2 f = fract(p);
-        float a = hash(i);
-        float b = hash(i + vec2(1.0, 0.0));
-        float c = hash(i + vec2(0.0, 1.0));
-        float d = hash(i + vec2(1.0, 1.0));
-        vec2 u = f*f*(3.0-2.0*f);
-        return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
-      }
-      float fbm(vec2 p){
-        float v = 0.0;
-        float a = 0.5;
-        for (int i = 0; i < 5; i++) {
-          v += a * noise(p);
-          p *= 2.02;
-          a *= 0.5;
+    const uniforms = {
+      u_time: { value: 0 },
+      u_res: {
+        value: new THREE.Vector2(window.innerWidth, window.innerHeight),
+      },
+      u_mouse: { value: new THREE.Vector2(0.5, 0.5) },
+      u_ripple: { value: new THREE.Vector3(0.5, 0.5, 999) }, // x,y,age
+    };
+
+    const material = new THREE.ShaderMaterial({
+      uniforms,
+      transparent: true,
+      depthWrite: false,
+      depthTest: false,
+      vertexShader: /* glsl */ `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = vec4(position.xy, 0.0, 1.0);
         }
-        return v;
-      }
+      `,
+      fragmentShader: /* glsl */ `
+        precision highp float;
+        varying vec2 vUv;
+        uniform float u_time;
+        uniform vec2  u_res;
+        uniform vec2  u_mouse;
+        uniform vec3  u_ripple;
 
-      void main(){
-        vec2 uv = gl_FragCoord.xy / u_res.xy;
-        vec2 p  = uv;
-        p.x *= u_res.x / u_res.y;
+        float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123); }
+        float noise(vec2 p){
+          vec2 i = floor(p);
+          vec2 f = fract(p);
+          float a = hash(i);
+          float b = hash(i + vec2(1.0, 0.0));
+          float c = hash(i + vec2(0.0, 1.0));
+          float d = hash(i + vec2(1.0, 1.0));
+          vec2 u = f*f*(3.0 - 2.0*f);
+          return mix(a,b,u.x) + (c-a)*u.y*(1.0-u.x) + (d-b)*u.x*u.y;
+        }
+        float fbm(vec2 p){
+          float v = 0.0;
+          float a = 0.5;
+          for (int i=0; i<5; i++) {
+            v += a * noise(p);
+            p = mat2(1.6, 1.2, -1.2, 1.6) * p;
+            a *= 0.5;
+          }
+          return v;
+        }
 
-        float t = u_time * 0.06;
+        void main(){
+          vec2 uv = vUv;
+          vec2 p  = uv;
+          p.x *= u_res.x / u_res.y;
 
-        // parallax warp follows cursor gently
-        vec2 par = (u_mouse - 0.5) * 0.25;
+          float t = u_time * 0.18;
+          vec2 par = (u_mouse - 0.5) * 0.35;
 
-        // domain-warped flow noise → liquid feel
-        vec2 q = vec2(
-          fbm(p * 1.6 + vec2(0.0, t) + par),
-          fbm(p * 1.6 + vec2(5.2, -t) - par)
-        );
-        vec2 r = vec2(
-          fbm(p * 2.4 + 4.0 * q + vec2(1.7, 9.2) + t * 0.8),
-          fbm(p * 2.4 + 4.0 * q + vec2(8.3, 2.8) - t * 0.7)
-        );
-        float n = fbm(p * 2.0 + 3.0 * r + t);
+          // domain warping → liquid currents
+          vec2 q = vec2(
+            fbm(p * 1.4 + vec2(0.0, t) + par),
+            fbm(p * 1.4 + vec2(5.2, -t) - par)
+          );
+          vec2 r = vec2(
+            fbm(p * 2.2 + 4.0 * q + vec2(1.7, 9.2) + t * 1.1),
+            fbm(p * 2.2 + 4.0 * q + vec2(8.3, 2.8) - t * 0.9)
+          );
+          float n = fbm(p * 1.8 + 3.0 * r + t * 0.7);
 
-        // base deep palette (blue → violet)
-        vec3 deep   = vec3(0.04, 0.06, 0.12);
-        vec3 blue   = vec3(0.10, 0.28, 0.55);
-        vec3 cyan   = vec3(0.20, 0.65, 0.85);
-        vec3 violet = vec3(0.45, 0.30, 0.75);
-        vec3 white  = vec3(0.85, 0.92, 1.00);
+          // palette: deep indigo → blue → cyan, violet currents, white caustics
+          vec3 deep   = vec3(0.03, 0.05, 0.12);
+          vec3 blue   = vec3(0.08, 0.26, 0.55);
+          vec3 cyan   = vec3(0.18, 0.62, 0.85);
+          vec3 violet = vec3(0.42, 0.28, 0.78);
+          vec3 white  = vec3(0.88, 0.94, 1.00);
 
-        vec3 col = mix(deep, blue, smoothstep(0.20, 0.60, n));
-        col = mix(col, violet, smoothstep(0.55, 0.85, length(r) * 0.6));
-        col = mix(col, cyan,   smoothstep(0.65, 0.95, n) * 0.6);
+          vec3 col = mix(deep, blue, smoothstep(0.15, 0.65, n));
+          col = mix(col, violet, smoothstep(0.45, 0.85, length(r) * 0.65));
+          col = mix(col, cyan,   smoothstep(0.60, 0.95, n) * 0.7);
 
-        // specular-like highlights (caustics feel)
-        float h = pow(smoothstep(0.78, 1.0, n + 0.15 * r.x), 2.0);
-        col += white * h * 0.35;
+          // caustics-like highlights
+          float h = pow(smoothstep(0.74, 1.0, n + 0.18 * r.x), 2.2);
+          col += white * h * 0.45;
 
-        // mouse ripple — radial wave decaying with age
-        vec2 mp = u_ripple;
-        mp.x *= u_res.x / u_res.y;
-        float d = distance(p, mp);
-        float age = max(u_rippleAge, 0.0);
-        float ring = sin(d * 36.0 - age * 6.0) * exp(-d * 6.0) * exp(-age * 1.4);
-        col += vec3(0.25, 0.55, 0.95) * ring * 0.12;
+          // pointer ripple
+          vec2 mp = u_ripple.xy;
+          mp.x *= u_res.x / u_res.y;
+          float d   = distance(p, mp);
+          float age = max(u_ripple.z, 0.0);
+          float ring = sin(d * 38.0 - age * 7.0) * exp(-d * 5.5) * exp(-age * 1.3);
+          col += vec3(0.30, 0.60, 0.95) * ring * 0.18;
 
-        // vignette + alpha (blend on top of dark page)
-        float vig = smoothstep(1.25, 0.25, length(uv - 0.5));
-        col *= mix(0.55, 1.0, vig);
+          // vignette
+          float vig = smoothstep(1.25, 0.30, length(uv - 0.5));
+          col *= mix(0.55, 1.0, vig);
 
-        // overall opacity tuned to sit behind glass
-        float alpha = 0.92;
-        gl_FragColor = vec4(col, alpha);
-      }
-    `;
+          gl_FragColor = vec4(col, 0.95);
+        }
+      `,
+    });
 
-    const compile = (type: number, src: string) => {
-      const s = gl.createShader(type)!;
-      gl.shaderSource(s, src);
-      gl.compileShader(s);
-      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
-        console.error(gl.getShaderInfoLog(s));
-        gl.deleteShader(s);
-        return null;
-      }
-      return s;
+    // Fullscreen triangle (more efficient than a quad)
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute(
+      "position",
+      new THREE.BufferAttribute(new Float32Array([-1, -1, 0, 3, -1, 0, -1, 3, 0]), 3)
+    );
+    geo.setAttribute(
+      "uv",
+      new THREE.BufferAttribute(new Float32Array([0, 0, 2, 0, 0, 2]), 2)
+    );
+    const mesh = new THREE.Mesh(geo, material);
+    mesh.frustumCulled = false;
+    scene.add(mesh);
+
+    const onResize = () => {
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxDpr));
+      renderer.setSize(window.innerWidth, window.innerHeight, false);
+      uniforms.u_res.value.set(window.innerWidth, window.innerHeight);
     };
+    window.addEventListener("resize", onResize);
 
-    const vs = compile(gl.VERTEX_SHADER, vert);
-    const fs = compile(gl.FRAGMENT_SHADER, frag);
-    if (!vs || !fs) return;
-
-    const prog = gl.createProgram()!;
-    gl.attachShader(prog, vs);
-    gl.attachShader(prog, fs);
-    gl.linkProgram(prog);
-    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
-      console.error(gl.getProgramInfoLog(prog));
-      return;
-    }
-    gl.useProgram(prog);
-
-    // fullscreen triangle
-    const buf = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-    const loc = gl.getAttribLocation(prog, "a_pos");
-    gl.enableVertexAttribArray(loc);
-    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-
-    const uRes = gl.getUniformLocation(prog, "u_res");
-    const uTime = gl.getUniformLocation(prog, "u_time");
-    const uMouse = gl.getUniformLocation(prog, "u_mouse");
-    const uRipple = gl.getUniformLocation(prog, "u_ripple");
-    const uRippleAge = gl.getUniformLocation(prog, "u_rippleAge");
-    const uQuality = gl.getUniformLocation(prog, "u_quality");
-
-    gl.uniform1f(uQuality, lowPerf ? 0.6 : 1.0);
-
-    // state
-    const target = { x: 0.5, y: 0.5 };
-    const smooth = { x: 0.5, y: 0.5 };
-    let ripple = { x: 0.5, y: 0.5, t: 999 };
-    let lastRippleStamp = 0;
-
-    const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
-      const w = Math.floor(window.innerWidth * dpr);
-      const h = Math.floor(window.innerHeight * dpr);
-      if (canvas.width !== w || canvas.height !== h) {
-        canvas.width = w;
-        canvas.height = h;
-        gl.viewport(0, 0, w, h);
-      }
-    };
-    resize();
-    window.addEventListener("resize", resize);
-
+    const target = new THREE.Vector2(0.5, 0.5);
+    let lastRipple = 0;
     const onMove = (e: PointerEvent) => {
-      target.x = e.clientX / window.innerWidth;
-      target.y = 1 - e.clientY / window.innerHeight;
+      target.set(e.clientX / window.innerWidth, 1 - e.clientY / window.innerHeight);
       const now = performance.now();
-      if (now - lastRippleStamp > 220) {
-        ripple = { x: target.x, y: target.y, t: 0 };
-        lastRippleStamp = now;
+      if (now - lastRipple > 220) {
+        uniforms.u_ripple.value.set(target.x, target.y, 0);
+        lastRipple = now;
       }
     };
     window.addEventListener("pointermove", onMove, { passive: true });
 
     let raf = 0;
-    let last = performance.now();
-    const start = last;
-    // Cap to ~45fps on low-perf to save battery
-    const frameInterval = lowPerf ? 1000 / 45 : 0;
+    const clock = new THREE.Clock();
+    const frameInterval = lowPerf ? 1 / 45 : 0;
     let acc = 0;
+    let running = true;
 
-    const render = (now: number) => {
-      raf = requestAnimationFrame(render);
-      const dt = now - last;
-      last = now;
+    const tick = () => {
+      if (!running) return;
+      raf = requestAnimationFrame(tick);
+      const dt = clock.getDelta();
       acc += dt;
       if (frameInterval && acc < frameInterval) return;
       acc = 0;
 
       // ease parallax
-      smooth.x += (target.x - smooth.x) * 0.06;
-      smooth.y += (target.y - smooth.y) * 0.06;
-      ripple.t += dt / 1000;
-
-      const t = reduceMotion ? 0 : (now - start) / 1000;
-      gl.uniform2f(uRes, canvas.width, canvas.height);
-      gl.uniform1f(uTime, t);
-      gl.uniform2f(uMouse, smooth.x, smooth.y);
-      gl.uniform2f(uRipple, ripple.x, ripple.y);
-      gl.uniform1f(uRippleAge, ripple.t);
-      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      uniforms.u_mouse.value.lerp(target, 0.06);
+      uniforms.u_ripple.value.z += dt;
+      uniforms.u_time.value += dt;
+      renderer.render(scene, camera);
     };
 
     if (reduceMotion) {
-      // single frame, no animation
-      gl.uniform2f(uRes, canvas.width, canvas.height);
-      gl.uniform1f(uTime, 0);
-      gl.uniform2f(uMouse, 0.5, 0.5);
-      gl.uniform2f(uRipple, 0.5, 0.5);
-      gl.uniform1f(uRippleAge, 999);
-      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      uniforms.u_time.value = 0;
+      renderer.render(scene, camera);
     } else {
-      raf = requestAnimationFrame(render);
+      raf = requestAnimationFrame(tick);
     }
 
-    // pause when tab hidden
     const onVis = () => {
       if (document.hidden) {
+        running = false;
         cancelAnimationFrame(raf);
       } else if (!reduceMotion) {
-        last = performance.now();
-        raf = requestAnimationFrame(render);
+        running = true;
+        clock.getDelta(); // reset
+        raf = requestAnimationFrame(tick);
       }
     };
     document.addEventListener("visibilitychange", onVis);
 
-    // mark to satisfy linter for isWebGL2 var
-    void isWebGL2;
+    const onLost = (e: Event) => {
+      e.preventDefault();
+      cancelAnimationFrame(raf);
+    };
+    const onRestored = () => {
+      if (!reduceMotion) raf = requestAnimationFrame(tick);
+    };
+    canvas.addEventListener("webglcontextlost", onLost as EventListener);
+    canvas.addEventListener("webglcontextrestored", onRestored);
 
     return () => {
+      running = false;
       cancelAnimationFrame(raf);
-      window.removeEventListener("resize", resize);
+      window.removeEventListener("resize", onResize);
       window.removeEventListener("pointermove", onMove);
       document.removeEventListener("visibilitychange", onVis);
-      gl.deleteBuffer(buf);
-      gl.deleteProgram(prog);
-      gl.deleteShader(vs);
-      gl.deleteShader(fs);
+      canvas.removeEventListener("webglcontextlost", onLost as EventListener);
+      canvas.removeEventListener("webglcontextrestored", onRestored);
+      geo.dispose();
+      material.dispose();
+      renderer.dispose();
+      if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
     };
   }, [mounted]);
 
@@ -275,17 +261,9 @@ export function WaterBackground() {
       aria-hidden
       className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
     >
-      {/* dark fallback for SSR + reduced-motion + non-WebGL */}
+      {/* SSR / fallback gradient */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,oklch(0.18_0.08_280)_0%,oklch(0.08_0.03_280)_60%,oklch(0.06_0.02_280)_100%)]" />
-      {mounted && (
-        <canvas
-          ref={canvasRef}
-          className="absolute inset-0 h-full w-full"
-          style={{ display: "block" }}
-        />
-      )}
-      {/* soft frosted overlay for "behind glass" feel */}
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,oklch(0.08_0.03_280/0.25),oklch(0.06_0.02_280/0.45))]" />
+      <div ref={hostRef} className="absolute inset-0" />
     </div>
   );
 }
