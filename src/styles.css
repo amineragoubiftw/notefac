@@ -186,31 +186,5 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
-  .css-water-bg { animation: none !important; }
 }
-
-/* Lightweight CSS animated gradient — fallback for low-perf devices.
-   GPU-friendly: animates background-position only, no blur, no filters. */
-.css-water-bg {
-  background-color: oklch(0.08 0.03 280);
-  background-image:
-    radial-gradient(at 20% 30%, oklch(0.42 0.28 280 / 0.55) 0px, transparent 50%),
-    radial-gradient(at 80% 20%, oklch(0.45 0.22 220 / 0.50) 0px, transparent 50%),
-    radial-gradient(at 30% 80%, oklch(0.40 0.24 320 / 0.45) 0px, transparent 50%),
-    radial-gradient(at 75% 75%, oklch(0.42 0.20 200 / 0.40) 0px, transparent 50%),
-    radial-gradient(ellipse at top, oklch(0.18 0.08 280) 0%, oklch(0.06 0.02 280) 100%);
-  background-size: 200% 200%, 200% 200%, 200% 200%, 200% 200%, 100% 100%;
-  background-position: 0% 0%, 100% 0%, 0% 100%, 100% 100%, center;
-  animation: css-water-flow 28s ease-in-out infinite;
-  will-change: background-position;
-}
-@keyframes css-water-flow {
-  0%, 100% {
-    background-position: 0% 0%, 100% 0%, 0% 100%, 100% 100%, center;
-  }
-  50% {
-    background-position: 30% 40%, 70% 30%, 20% 70%, 80% 60%, center;
-  }
-}
-
 

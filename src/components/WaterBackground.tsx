@@ -1,297 +1,269 @@
 import { useEffect, useRef, useState } from "react";
+import * as THREE from "three";
 
 /**
- * Adaptive animated background.
+ * Animated liquid water background — Three.js + custom GLSL shader.
  *
- * Tier detection (runs once on mount):
- *   - "css"    → prefers-reduced-motion, no WebGL, mobile/coarse pointer,
- *                low core count, low deviceMemory, Safari <16, or known
- *                weak-GPU heuristics. Uses pure CSS animated gradient.
- *   - "webgl"  → modern desktop with WebGL. Loads Three.js + shader lazily.
+ * Tech:
+ *  - Three.js WebGLRenderer (GPU-accelerated)
+ *  - Fullscreen plane + ShaderMaterial (custom fragment shader)
+ *  - Procedural multi-octave domain-warped fbm noise → non-repeating motion
+ *  - Continuous requestAnimationFrame loop driving u_time
  *
- * Both tiers share the same visual palette so the look is consistent.
- * No memory leaks: cleanup disposes renderer, geometry, material, listeners.
+ * Performance:
+ *  - DPR clamped (1.5 desktop / 1 on coarse-pointer or <=4 cores)
+ *  - On low-perf devices, render loop throttled to ~45 FPS
+ *  - Pauses when document is hidden
+ *  - Honors prefers-reduced-motion (single static frame)
+ *  - Listens for THREE webglcontextlost to restart cleanly
+ *
+ * SSR-safe: canvas mounts only after client hydration.
  */
-
-type Tier = "css" | "webgl";
-
-function detectTier(): Tier {
-  if (typeof window === "undefined") return "css";
-
-  // Respect reduced motion
-  if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
-    return "css";
-  }
-
-  // Coarse pointer = mobile/tablet → CSS
-  if (window.matchMedia?.("(pointer: coarse)").matches) return "css";
-
-  // Low CPU
-  const cores = navigator.hardwareConcurrency || 4;
-  if (cores <= 4) return "css";
-
-  // Low memory (Chrome only)
-  const mem = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
-  if (typeof mem === "number" && mem <= 4) return "css";
-
-  // Save-data
-  const conn = (navigator as Navigator & { connection?: { saveData?: boolean } })
-    .connection;
-  if (conn?.saveData) return "css";
-
-  // WebGL capability probe
-  try {
-    const c = document.createElement("canvas");
-    const gl =
-      (c.getContext("webgl2") as WebGL2RenderingContext | null) ||
-      (c.getContext("webgl") as WebGLRenderingContext | null) ||
-      (c.getContext("experimental-webgl") as WebGLRenderingContext | null);
-    if (!gl) return "css";
-
-    // Check for software renderer (SwiftShader, llvmpipe → very slow)
-    const dbg = gl.getExtension("WEBGL_debug_renderer_info");
-    if (dbg) {
-      const renderer = String(
-        gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) || ""
-      ).toLowerCase();
-      if (
-        renderer.includes("swiftshader") ||
-        renderer.includes("llvmpipe") ||
-        renderer.includes("software") ||
-        renderer.includes("microsoft basic")
-      ) {
-        return "css";
-      }
-    }
-  } catch {
-    return "css";
-  }
-
-  return "webgl";
-}
-
 export function WaterBackground() {
   const hostRef = useRef<HTMLDivElement | null>(null);
-  const [tier, setTier] = useState<Tier | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
-    setTier(detectTier());
-  }, []);
-
-  useEffect(() => {
-    if (tier !== "webgl") return;
+    if (!mounted) return;
     const host = hostRef.current;
     if (!host) return;
 
-    let disposed = false;
-    let cleanup: (() => void) | null = null;
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+    const lowPerf =
+      (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
+      window.matchMedia("(pointer: coarse)").matches;
+    const maxDpr = lowPerf ? 1 : 1.5;
 
-    // Lazy-load Three.js so CSS-tier devices never download it
-    import("three")
-      .then((THREE) => {
-        if (disposed || !host) return;
+    const renderer = new THREE.WebGLRenderer({
+      antialias: false,
+      alpha: true,
+      premultipliedAlpha: true,
+      powerPreference: "high-performance",
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxDpr));
+    renderer.setSize(window.innerWidth, window.innerHeight, false);
+    renderer.setClearColor(0x000000, 0);
+    const canvas = renderer.domElement;
+    canvas.style.display = "block";
+    canvas.style.width = "100%";
+    canvas.style.height = "100%";
+    host.appendChild(canvas);
 
-        let renderer: import("three").WebGLRenderer;
-        try {
-          renderer = new THREE.WebGLRenderer({
-            antialias: false,
-            alpha: true,
-            premultipliedAlpha: true,
-            powerPreference: "high-performance",
-            failIfMajorPerformanceCaveat: false,
-          });
-        } catch {
-          // WebGL init failed → silently keep CSS fallback (already rendered)
-          setTier("css");
-          return;
+    const scene = new THREE.Scene();
+    const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+
+    const uniforms = {
+      u_time: { value: 0 },
+      u_res: {
+        value: new THREE.Vector2(window.innerWidth, window.innerHeight),
+      },
+      u_mouse: { value: new THREE.Vector2(0.5, 0.5) },
+      u_ripple: { value: new THREE.Vector3(0.5, 0.5, 999) }, // x,y,age
+    };
+
+    const material = new THREE.ShaderMaterial({
+      uniforms,
+      transparent: true,
+      depthWrite: false,
+      depthTest: false,
+      vertexShader: /* glsl */ `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = vec4(position.xy, 0.0, 1.0);
+        }
+      `,
+      fragmentShader: /* glsl */ `
+        precision highp float;
+        varying vec2 vUv;
+        uniform float u_time;
+        uniform vec2  u_res;
+        uniform vec2  u_mouse;
+        uniform vec3  u_ripple;
+
+        float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123); }
+        float noise(vec2 p){
+          vec2 i = floor(p);
+          vec2 f = fract(p);
+          float a = hash(i);
+          float b = hash(i + vec2(1.0, 0.0));
+          float c = hash(i + vec2(0.0, 1.0));
+          float d = hash(i + vec2(1.0, 1.0));
+          vec2 u = f*f*(3.0 - 2.0*f);
+          return mix(a,b,u.x) + (c-a)*u.y*(1.0-u.x) + (d-b)*u.x*u.y;
+        }
+        float fbm(vec2 p){
+          float v = 0.0;
+          float a = 0.5;
+          for (int i=0; i<5; i++) {
+            v += a * noise(p);
+            p = mat2(1.6, 1.2, -1.2, 1.6) * p;
+            a *= 0.5;
+          }
+          return v;
         }
 
-        const maxDpr = 1.25;
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxDpr));
-        renderer.setSize(window.innerWidth, window.innerHeight, false);
-        renderer.setClearColor(0x000000, 0);
-        const canvas = renderer.domElement;
-        canvas.style.display = "block";
-        canvas.style.width = "100%";
-        canvas.style.height = "100%";
-        host.appendChild(canvas);
+        void main(){
+          vec2 uv = vUv;
+          vec2 p  = uv;
+          p.x *= u_res.x / u_res.y;
 
-        const scene = new THREE.Scene();
-        const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+          float t = u_time * 0.18;
+          vec2 par = (u_mouse - 0.5) * 0.35;
 
-        const uniforms = {
-          u_time: { value: 0 },
-          u_res: {
-            value: new THREE.Vector2(window.innerWidth, window.innerHeight),
-          },
-          u_mouse: { value: new THREE.Vector2(0.5, 0.5) },
-        };
-
-        const material = new THREE.ShaderMaterial({
-          uniforms,
-          transparent: true,
-          depthWrite: false,
-          depthTest: false,
-          vertexShader: `
-            void main(){ gl_Position = vec4(position.xy, 0.0, 1.0); }
-          `,
-          fragmentShader: `
-            precision mediump float;
-            uniform float u_time;
-            uniform vec2  u_res;
-            uniform vec2  u_mouse;
-            float hash(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123); }
-            float noise(vec2 p){
-              vec2 i=floor(p),f=fract(p);
-              float a=hash(i),b=hash(i+vec2(1,0)),c=hash(i+vec2(0,1)),d=hash(i+vec2(1,1));
-              vec2 u=f*f*(3.0-2.0*f);
-              return mix(a,b,u.x)+(c-a)*u.y*(1.0-u.x)+(d-b)*u.x*u.y;
-            }
-            float fbm(vec2 p){
-              float v=0.0,a=0.5;
-              for(int i=0;i<4;i++){ v+=a*noise(p); p=mat2(1.6,1.2,-1.2,1.6)*p; a*=0.5; }
-              return v;
-            }
-            void main(){
-              vec2 uv = gl_FragCoord.xy / u_res.xy;
-              vec2 p = uv; p.x *= u_res.x/u_res.y;
-              float t = u_time*0.15;
-              vec2 par = (u_mouse-0.5)*0.3;
-              vec2 q = vec2(fbm(p*1.4+vec2(0.0,t)+par), fbm(p*1.4+vec2(5.2,-t)-par));
-              vec2 r = vec2(fbm(p*2.0+3.0*q+t), fbm(p*2.0+3.0*q-t));
-              float n = fbm(p*1.6+2.5*r+t*0.6);
-              vec3 deep=vec3(0.03,0.05,0.12);
-              vec3 blue=vec3(0.08,0.26,0.55);
-              vec3 cyan=vec3(0.18,0.62,0.85);
-              vec3 violet=vec3(0.42,0.28,0.78);
-              vec3 col = mix(deep, blue, smoothstep(0.15,0.65,n));
-              col = mix(col, violet, smoothstep(0.45,0.85,length(r)*0.65));
-              col = mix(col, cyan, smoothstep(0.60,0.95,n)*0.6);
-              float h = pow(smoothstep(0.74,1.0,n+0.18*r.x),2.2);
-              col += vec3(0.88,0.94,1.0)*h*0.35;
-              float vig = smoothstep(1.25,0.30,length(uv-0.5));
-              col *= mix(0.6,1.0,vig);
-              gl_FragColor = vec4(col, 0.95);
-            }
-          `,
-        });
-
-        const geo = new THREE.BufferGeometry();
-        geo.setAttribute(
-          "position",
-          new THREE.BufferAttribute(
-            new Float32Array([-1, -1, 0, 3, -1, 0, -1, 3, 0]),
-            3
-          )
-        );
-        const mesh = new THREE.Mesh(geo, material);
-        mesh.frustumCulled = false;
-        scene.add(mesh);
-
-        const onResize = () => {
-          renderer.setPixelRatio(
-            Math.min(window.devicePixelRatio || 1, maxDpr)
+          // domain warping → liquid currents
+          vec2 q = vec2(
+            fbm(p * 1.4 + vec2(0.0, t) + par),
+            fbm(p * 1.4 + vec2(5.2, -t) - par)
           );
-          renderer.setSize(window.innerWidth, window.innerHeight, false);
-          uniforms.u_res.value.set(window.innerWidth, window.innerHeight);
-        };
-        window.addEventListener("resize", onResize, { passive: true });
+          vec2 r = vec2(
+            fbm(p * 2.2 + 4.0 * q + vec2(1.7, 9.2) + t * 1.1),
+            fbm(p * 2.2 + 4.0 * q + vec2(8.3, 2.8) - t * 0.9)
+          );
+          float n = fbm(p * 1.8 + 3.0 * r + t * 0.7);
 
-        const target = { x: 0.5, y: 0.5 };
-        const onMove = (e: PointerEvent) => {
-          target.x = e.clientX / window.innerWidth;
-          target.y = 1 - e.clientY / window.innerHeight;
-        };
-        window.addEventListener("pointermove", onMove, { passive: true });
+          // palette: deep indigo → blue → cyan, violet currents, white caustics
+          vec3 deep   = vec3(0.03, 0.05, 0.12);
+          vec3 blue   = vec3(0.08, 0.26, 0.55);
+          vec3 cyan   = vec3(0.18, 0.62, 0.85);
+          vec3 violet = vec3(0.42, 0.28, 0.78);
+          vec3 white  = vec3(0.88, 0.94, 1.00);
 
-        let raf = 0;
-        let running = true;
-        let last = performance.now();
-        const minInterval = 1000 / 60;
+          vec3 col = mix(deep, blue, smoothstep(0.15, 0.65, n));
+          col = mix(col, violet, smoothstep(0.45, 0.85, length(r) * 0.65));
+          col = mix(col, cyan,   smoothstep(0.60, 0.95, n) * 0.7);
 
-        const tick = (now: number) => {
-          if (!running) return;
-          raf = requestAnimationFrame(tick);
-          const dt = now - last;
-          if (dt < minInterval) return;
-          last = now;
-          uniforms.u_mouse.value.x +=
-            (target.x - uniforms.u_mouse.value.x) * 0.06;
-          uniforms.u_mouse.value.y +=
-            (target.y - uniforms.u_mouse.value.y) * 0.06;
-          uniforms.u_time.value += dt / 1000;
-          try {
-            renderer.render(scene, camera);
-          } catch {
-            running = false;
-          }
-        };
+          // caustics-like highlights
+          float h = pow(smoothstep(0.74, 1.0, n + 0.18 * r.x), 2.2);
+          col += white * h * 0.45;
+
+          // pointer ripple
+          vec2 mp = u_ripple.xy;
+          mp.x *= u_res.x / u_res.y;
+          float d   = distance(p, mp);
+          float age = max(u_ripple.z, 0.0);
+          float ring = sin(d * 38.0 - age * 7.0) * exp(-d * 5.5) * exp(-age * 1.3);
+          col += vec3(0.30, 0.60, 0.95) * ring * 0.18;
+
+          // vignette
+          float vig = smoothstep(1.25, 0.30, length(uv - 0.5));
+          col *= mix(0.55, 1.0, vig);
+
+          gl_FragColor = vec4(col, 0.95);
+        }
+      `,
+    });
+
+    // Fullscreen triangle (more efficient than a quad)
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute(
+      "position",
+      new THREE.BufferAttribute(new Float32Array([-1, -1, 0, 3, -1, 0, -1, 3, 0]), 3)
+    );
+    geo.setAttribute(
+      "uv",
+      new THREE.BufferAttribute(new Float32Array([0, 0, 2, 0, 0, 2]), 2)
+    );
+    const mesh = new THREE.Mesh(geo, material);
+    mesh.frustumCulled = false;
+    scene.add(mesh);
+
+    const onResize = () => {
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxDpr));
+      renderer.setSize(window.innerWidth, window.innerHeight, false);
+      uniforms.u_res.value.set(window.innerWidth, window.innerHeight);
+    };
+    window.addEventListener("resize", onResize);
+
+    const target = new THREE.Vector2(0.5, 0.5);
+    let lastRipple = 0;
+    const onMove = (e: PointerEvent) => {
+      target.set(e.clientX / window.innerWidth, 1 - e.clientY / window.innerHeight);
+      const now = performance.now();
+      if (now - lastRipple > 220) {
+        uniforms.u_ripple.value.set(target.x, target.y, 0);
+        lastRipple = now;
+      }
+    };
+    window.addEventListener("pointermove", onMove, { passive: true });
+
+    let raf = 0;
+    const clock = new THREE.Clock();
+    const frameInterval = lowPerf ? 1 / 45 : 0;
+    let acc = 0;
+    let running = true;
+
+    const tick = () => {
+      if (!running) return;
+      raf = requestAnimationFrame(tick);
+      const dt = clock.getDelta();
+      acc += dt;
+      if (frameInterval && acc < frameInterval) return;
+      acc = 0;
+
+      // ease parallax
+      uniforms.u_mouse.value.lerp(target, 0.06);
+      uniforms.u_ripple.value.z += dt;
+      uniforms.u_time.value += dt;
+      renderer.render(scene, camera);
+    };
+
+    if (reduceMotion) {
+      uniforms.u_time.value = 0;
+      renderer.render(scene, camera);
+    } else {
+      raf = requestAnimationFrame(tick);
+    }
+
+    const onVis = () => {
+      if (document.hidden) {
+        running = false;
+        cancelAnimationFrame(raf);
+      } else if (!reduceMotion) {
+        running = true;
+        clock.getDelta(); // reset
         raf = requestAnimationFrame(tick);
+      }
+    };
+    document.addEventListener("visibilitychange", onVis);
 
-        const onVis = () => {
-          if (document.hidden) {
-            running = false;
-            cancelAnimationFrame(raf);
-          } else {
-            running = true;
-            last = performance.now();
-            raf = requestAnimationFrame(tick);
-          }
-        };
-        document.addEventListener("visibilitychange", onVis);
-
-        const onLost = (e: Event) => {
-          e.preventDefault();
-          running = false;
-          cancelAnimationFrame(raf);
-          // Fallback to CSS if context cannot be restored quickly
-          setTimeout(() => {
-            if (!running) setTier("css");
-          }, 1500);
-        };
-        const onRestored = () => {
-          running = true;
-          last = performance.now();
-          raf = requestAnimationFrame(tick);
-        };
-        canvas.addEventListener("webglcontextlost", onLost as EventListener);
-        canvas.addEventListener("webglcontextrestored", onRestored);
-
-        cleanup = () => {
-          running = false;
-          cancelAnimationFrame(raf);
-          window.removeEventListener("resize", onResize);
-          window.removeEventListener("pointermove", onMove);
-          document.removeEventListener("visibilitychange", onVis);
-          canvas.removeEventListener(
-            "webglcontextlost",
-            onLost as EventListener
-          );
-          canvas.removeEventListener("webglcontextrestored", onRestored);
-          geo.dispose();
-          material.dispose();
-          renderer.dispose();
-          if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
-        };
-      })
-      .catch(() => {
-        if (!disposed) setTier("css");
-      });
+    const onLost = (e: Event) => {
+      e.preventDefault();
+      cancelAnimationFrame(raf);
+    };
+    const onRestored = () => {
+      if (!reduceMotion) raf = requestAnimationFrame(tick);
+    };
+    canvas.addEventListener("webglcontextlost", onLost as EventListener);
+    canvas.addEventListener("webglcontextrestored", onRestored);
 
     return () => {
-      disposed = true;
-      cleanup?.();
+      running = false;
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("pointermove", onMove);
+      document.removeEventListener("visibilitychange", onVis);
+      canvas.removeEventListener("webglcontextlost", onLost as EventListener);
+      canvas.removeEventListener("webglcontextrestored", onRestored);
+      geo.dispose();
+      material.dispose();
+      renderer.dispose();
+      if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
     };
-  }, [tier]);
+  }, [mounted]);
 
   return (
     <div
       aria-hidden
       className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
     >
-      {/* Always-present base layer — also acts as fallback if WebGL fails */}
-      <div className="absolute inset-0 css-water-bg" />
-      {tier === "webgl" && <div ref={hostRef} className="absolute inset-0" />}
+      {/* SSR / fallback gradient */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,oklch(0.18_0.08_280)_0%,oklch(0.08_0.03_280)_60%,oklch(0.06_0.02_280)_100%)]" />
+      <div ref={hostRef} className="absolute inset-0" />
     </div>
   );
 }
