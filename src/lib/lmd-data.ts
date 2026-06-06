@@ -1,4 +1,4 @@
-export type ExamType = "examen" | "ds" | "cc" | "ds1" | "ds2";
+export type ExamType = "examen" | "ds" | "cc" | "ds1" | "ds2" | "control";
 
 export interface ModuleDef {
   name: string;
@@ -331,6 +331,10 @@ function weightsFor(examTypes: ExamType[]): Partial<Record<ExamType, number>> {
 }
 
 export function moduleFinalNote(g: ModuleGrades, examTypes: ExamType[] = ["examen", "ds", "cc"]): number | null {
+  // Manual "Control" override always wins when set
+  const ctrl = parseFloat(g.control ?? "");
+  if (!isNaN(ctrl)) return clamp(ctrl);
+
   const W = weightsFor(examTypes);
   const parsed: Partial<Record<ExamType, number>> = {};
   let any = false;
