@@ -33,6 +33,7 @@ export function ModuleRow({ name, coef, examTypes, grades, onChange }: ModuleRow
               placeholder="--"
               value={grades[field] ?? ""}
               onChange={(e) => onChange(field, e.target.value)}
+              onWheel={(e) => e.currentTarget.blur()}
               className="glass-input w-16 text-center tabular-nums"
             />
           </div>
@@ -63,6 +64,7 @@ export function ModuleRow({ name, coef, examTypes, grades, onChange }: ModuleRow
             placeholder="--"
             value={grades.control ?? ""}
             onChange={(e) => onChange("control", e.target.value)}
+            onWheel={(e) => e.currentTarget.blur()}
             className="glass-input w-16 text-center tabular-nums"
           />
         </div>
