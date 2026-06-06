@@ -1,4 +1,4 @@
-import { type ModuleGrades, type ExamType, moduleFinalNote } from "@/lib/lmd-data";
+import { type ModuleGrades, type ExamType, moduleComputedNote } from "@/lib/lmd-data";
 
 interface ModuleRowProps {
   name: string;
@@ -11,7 +11,7 @@ interface ModuleRowProps {
 const LABELS: Record<ExamType, string> = { examen: "Exam", ds: "DS", cc: "CC", ds1: "DS1", ds2: "DS2", control: "Control" };
 
 export function ModuleRow({ name, coef, examTypes, grades, onChange }: ModuleRowProps) {
-  const finalNote = moduleFinalNote(grades, examTypes);
+  const finalNote = moduleComputedNote(grades, examTypes);
 
   return (
     <div className="flex flex-wrap items-center gap-3 py-2.5">
