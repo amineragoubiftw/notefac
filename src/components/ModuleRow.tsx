@@ -51,6 +51,21 @@ export function ModuleRow({ name, coef, examTypes, grades, onChange }: ModuleRow
             {finalNote !== null ? finalNote.toFixed(2) : "--"}
           </span>
         </div>
+        <div className="flex flex-col items-center gap-0.5">
+          <label className="text-[10px] uppercase text-muted-foreground tracking-wider">
+            Control
+          </label>
+          <input
+            type="number"
+            min={0}
+            max={20}
+            step={0.25}
+            placeholder="--"
+            value={grades.control ?? ""}
+            onChange={(e) => onChange("control", e.target.value)}
+            className="glass-input w-16 text-center tabular-nums"
+          />
+        </div>
       </div>
     </div>
   );
