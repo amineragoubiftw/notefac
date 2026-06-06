@@ -330,11 +330,7 @@ function weightsFor(examTypes: ExamType[]): Partial<Record<ExamType, number>> {
   return WEIGHTS_FULL;
 }
 
-export function moduleFinalNote(g: ModuleGrades, examTypes: ExamType[] = ["examen", "ds", "cc"]): number | null {
-  // Manual "Control" override always wins when set
-  const ctrl = parseFloat(g.control ?? "");
-  if (!isNaN(ctrl)) return clamp(ctrl);
-
+export function moduleComputedNote(g: ModuleGrades, examTypes: ExamType[] = ["examen", "ds", "cc"]): number | null {
   const W = weightsFor(examTypes);
   const parsed: Partial<Record<ExamType, number>> = {};
   let any = false;
@@ -353,6 +349,16 @@ export function moduleFinalNote(g: ModuleGrades, examTypes: ExamType[] = ["exame
     sum += v * (W[t] ?? 0);
   }
   return totalWeight ? sum / totalWeight : null;
+}
+
+export function moduleFinalNote(g: ModuleGrades, examTypes: ExamType[] = ["examen", "ds", "cc"]): number | null {
+  const note = moduleComputedNote(g, examTypes);
+  const ctrl = parseFloat(g.control ?? "");
+  const ctrlClamped = isNaN(ctrl) ? null : clamp(ctrl);
+  if (note === null && ctrlClamped === null) return null;
+  if (note === null) return ctrlClamped;
+  if (ctrlClamped === null) return note;
+  return Math.max(note, ctrlClamped);
 }
 
 export function ueAverage(ue: UEDef, grades: Record<string, ModuleGrades>): number | null {
