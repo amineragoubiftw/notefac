@@ -14,7 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      year_shares: {
+        Row: {
+          created_at: string
+          id: string
+          major_id: string
+          major_name: string | null
+          payload: Json
+          share_code: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          major_id: string
+          major_name?: string | null
+          payload: Json
+          share_code: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          major_id?: string
+          major_name?: string | null
+          payload?: Json
+          share_code?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
