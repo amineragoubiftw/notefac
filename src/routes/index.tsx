@@ -108,6 +108,16 @@ function Index() {
     setProfile(() => ({ universityId: "", instituteId: "", majorId: "" }));
   }, [setAllGrades, setProfile]);
 
+  const handleImportYear = useCallback(
+    (imported: Record<string, Record<string, ModuleGrades>>, majorId: string) => {
+      setAllGrades((prev) => ({
+        ...prev,
+        [majorId]: mergeYearGrades(prev[majorId] || {}, imported),
+      }));
+    },
+    [setAllGrades],
+  );
+
   return (
     <div className="min-h-screen mesh-gradient relative">
       <WaterBackground />
