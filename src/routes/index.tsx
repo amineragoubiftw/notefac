@@ -8,6 +8,7 @@ import { SemesterToggle } from "@/components/SemesterToggle";
 import { UECard } from "@/components/UECard";
 import { ResultsPanel } from "@/components/ResultsPanel";
 import { WaterBackground } from "@/components/WaterBackground";
+import { ShareControls, mergeYearGrades } from "@/components/ShareControls";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import {
   AlertDialog,
