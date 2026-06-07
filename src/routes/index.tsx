@@ -8,6 +8,7 @@ import { SemesterToggle } from "@/components/SemesterToggle";
 import { UECard } from "@/components/UECard";
 import { ResultsPanel } from "@/components/ResultsPanel";
 import { WaterBackground } from "@/components/WaterBackground";
+import { ShareControls, mergeYearGrades } from "@/components/ShareControls";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import {
   AlertDialog,
@@ -75,6 +76,52 @@ function Index() {
     setActiveSemester(0);
   }, [profile.majorId]);
 
+  // Auto-import from share link: /?import=CODE
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("import");
+    if (!code) return;
+    // Clear the param so it doesn't re-import on refresh
+    const url = new URL(window.location.href);
+    url.searchParams.delete("import");
+    window.history.replaceState({}, "", url.toString());
+
+    (async () => {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data } = await supabase
+        .from("year_shares")
+        .select("payload, major_id, major_name")
+        .eq("share_code", code.toUpperCase())
+        .maybeSingle();
+      if (!data) return;
+      // Locate the major across universities to also set profile if empty
+      for (const u of universities) {
+        for (const i of u.institutes) {
+          const m = i.majors.find((x) => x.id === data.major_id);
+          if (m) {
+            setProfile((p) =>
+              p.majorId === m.id
+                ? p
+                : { universityId: u.id, instituteId: i.id, majorId: m.id },
+            );
+            setAllGrades((prev) => ({
+              ...prev,
+              [m.id]: mergeYearGrades(
+                prev[m.id] || {},
+                data.payload as Record<string, Record<string, ModuleGrades>>,
+              ),
+            }));
+            return;
+          }
+        }
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
+
   const handleSelectionChange = useCallback(
     (sel: Profile) => setProfile(() => sel),
     [setProfile]
@@ -106,6 +153,16 @@ function Index() {
     setAllGrades(() => ({}));
     setProfile(() => ({ universityId: "", instituteId: "", majorId: "" }));
   }, [setAllGrades, setProfile]);
+
+  const handleImportYear = useCallback(
+    (imported: Record<string, Record<string, ModuleGrades>>, majorId: string) => {
+      setAllGrades((prev) => ({
+        ...prev,
+        [majorId]: mergeYearGrades(prev[majorId] || {}, imported),
+      }));
+    },
+    [setAllGrades],
+  );
 
   return (
     <div className="min-h-screen mesh-gradient relative">
@@ -141,6 +198,14 @@ function Index() {
               </motion.div>
             )}
           </AnimatePresence>
+
+          <ShareControls
+            major={major}
+            yearGrades={(major && allGrades[major.id]) || {}}
+            onImport={handleImportYear}
+          />
+
+
 
           <AlertDialog>
             <AlertDialogTrigger asChild>
