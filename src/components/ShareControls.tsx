@@ -17,7 +17,7 @@ type YearGrades = Record<string, Record<string, ModuleGrades>>;
 interface ShareControlsProps {
   major: MajorDef | undefined;
   yearGrades: YearGrades;
-  onImport: (imported: YearGrades, majorId: string) => void;
+  onImport: (imported: YearGrades, majorId: string, majorName: string | null) => void;
 }
 
 function generateCode(): string {
