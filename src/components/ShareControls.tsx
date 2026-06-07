@@ -82,12 +82,16 @@ export function ShareControls({ major, yearGrades, onImport }: ShareControlsProp
         major_name: major.name,
         payload: yearGrades,
       });
-      if (dbErr) throw dbErr;
+      if (dbErr) {
+        console.error("[ShareYear] DB error", dbErr);
+        throw new Error(dbErr.message || "Database error while saving share");
+      }
       const url = `${window.location.origin}/?import=${newCode}`;
       setCode(newCode);
       setShareUrl(url);
       setQrUrl(await QRCode.toDataURL(url, { margin: 1, width: 220 }));
     } catch (e) {
+      console.error("[ShareYear] failed", e);
       setError(e instanceof Error ? e.message : "Failed to share");
     } finally {
       setLoading(false);
