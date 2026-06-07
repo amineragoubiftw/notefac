@@ -153,6 +153,14 @@ function Index() {
             )}
           </AnimatePresence>
 
+          <ShareControls
+            major={major}
+            yearGrades={(major && allGrades[major.id]) || {}}
+            onImport={handleImportYear}
+          />
+
+
+
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <button className="glass-card px-3 py-1.5 flex items-center gap-1.5 text-xs text-foreground hover:text-danger transition-colors">
