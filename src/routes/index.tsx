@@ -155,13 +155,33 @@ function Index() {
   }, [setAllGrades, setProfile]);
 
   const handleImportYear = useCallback(
-    (imported: Record<string, Record<string, ModuleGrades>>, majorId: string) => {
+    (
+      imported: Record<string, Record<string, ModuleGrades>>,
+      majorId: string,
+      _majorName: string | null,
+    ) => {
+      // Auto-select the correct profile (university + institute + major) so
+      // the recipient sees the imported semesters immediately, even when they
+      // had no selection before.
+      let found: { universityId: string; instituteId: string; majorId: string } | null = null;
+      for (const u of universities) {
+        for (const i of u.institutes) {
+          if (i.majors.some((m) => m.id === majorId)) {
+            found = { universityId: u.id, instituteId: i.id, majorId };
+            break;
+          }
+        }
+        if (found) break;
+      }
+      if (found) {
+        setProfile((p) => (p.majorId === majorId ? p : (found as Profile)));
+      }
       setAllGrades((prev) => ({
         ...prev,
         [majorId]: mergeYearGrades(prev[majorId] || {}, imported),
       }));
     },
-    [setAllGrades],
+    [setAllGrades, setProfile],
   );
 
   return (
