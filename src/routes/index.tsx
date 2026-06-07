@@ -91,7 +91,7 @@ function Index() {
       const { supabase } = await import("@/integrations/supabase/client");
       const { data } = await supabase
         .from("year_shares")
-        .select("payload, major_id, university_id:major_id, major_name")
+        .select("payload, major_id, major_name")
         .eq("share_code", code.toUpperCase())
         .maybeSingle();
       if (!data) return;
