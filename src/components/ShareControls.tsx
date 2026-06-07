@@ -154,13 +154,29 @@ export function ShareControls({ major, yearGrades, onImport }: ShareControlsProp
     setTimeout(() => setCopied(false), 1500);
   }
 
+  // Validate inside handlers (not via disabled attr) so SSR/CSR render the
+  // same markup regardless of localStorage state — avoids React hydration tears
+  // that would discard the dialog state mid-flow.
+  function openShareGuarded() {
+    if (!major) {
+      setError("Select your university, institute and major first.");
+      setShareOpen(true);
+      return;
+    }
+    if (!hasGrades) {
+      setError("Add at least one grade before sharing.");
+      setShareOpen(true);
+      return;
+    }
+    openShare();
+  }
+
   return (
     <>
       <button
-        onClick={openShare}
-        disabled={!major || !hasGrades}
-        className="glass-card px-3 py-1.5 flex items-center gap-1.5 text-xs text-foreground hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        title={!major ? "Select a major first" : !hasGrades ? "Add some grades first" : "Share your full year"}
+        onClick={openShareGuarded}
+        className="glass-card px-3 py-1.5 flex items-center gap-1.5 text-xs text-foreground hover:text-primary transition-colors"
+        title="Share your full year (S1 + S2)"
       >
         <Share2 className="w-3.5 h-3.5" />
         <span>Share My Year</span>
@@ -172,9 +188,8 @@ export function ShareControls({ major, yearGrades, onImport }: ShareControlsProp
           setImportedInfo(null);
           setImportOpen(true);
         }}
-        disabled={!major}
-        className="glass-card px-3 py-1.5 flex items-center gap-1.5 text-xs text-foreground hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        title={!major ? "Select a major first" : "Import a shared year"}
+        className="glass-card px-3 py-1.5 flex items-center gap-1.5 text-xs text-foreground hover:text-primary transition-colors"
+        title="Import a shared year"
       >
         <Download className="w-3.5 h-3.5" />
         <span>Import Year</span>
