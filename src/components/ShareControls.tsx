@@ -104,9 +104,11 @@ export function ShareControls({ major, yearGrades, onImport }: ShareControlsProp
   }
 
   async function handleImport() {
-    if (!major) return;
     const c = importCode.trim().toUpperCase();
-    if (!c) return;
+    if (!c) {
+      setError("Enter a share code");
+      return;
+    }
     setLoading(true);
     setError(null);
     setImportedInfo(null);
@@ -116,17 +118,26 @@ export function ShareControls({ major, yearGrades, onImport }: ShareControlsProp
         .select("payload, major_id, major_name")
         .eq("share_code", c)
         .maybeSingle();
-      if (dbErr) throw dbErr;
-      if (!data) throw new Error("Code not found");
-      if (data.major_id !== major.id) {
-        throw new Error(
-          `This share is for "${data.major_name ?? data.major_id}". Select the same major to import.`,
-        );
+      if (dbErr) {
+        console.error("[ImportYear] DB error", dbErr);
+        throw new Error(dbErr.message || "Database error");
       }
-      onImport(data.payload as YearGrades, data.major_id);
-      setImportedInfo("Grades imported and merged (highest values kept).");
+      if (!data) throw new Error(`No share found for code "${c}"`);
+      if (!data.payload || typeof data.payload !== "object") {
+        throw new Error("Shared data is empty or invalid");
+      }
+      onImport(
+        data.payload as YearGrades,
+        data.major_id,
+        data.major_name ?? null,
+      );
+      const semCount = Object.keys(data.payload as object).length;
+      setImportedInfo(
+        `Imported ${semCount} semester${semCount === 1 ? "" : "s"} from "${data.major_name ?? data.major_id}". Highest grades kept.`,
+      );
       setImportCode("");
     } catch (e) {
+      console.error("[ImportYear] failed", e);
       setError(e instanceof Error ? e.message : "Failed to import");
     } finally {
       setLoading(false);
