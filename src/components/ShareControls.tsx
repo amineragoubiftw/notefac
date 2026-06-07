@@ -17,7 +17,7 @@ type YearGrades = Record<string, Record<string, ModuleGrades>>;
 interface ShareControlsProps {
   major: MajorDef | undefined;
   yearGrades: YearGrades;
-  onImport: (imported: YearGrades, majorId: string) => void;
+  onImport: (imported: YearGrades, majorId: string, majorName: string | null) => void;
 }
 
 function generateCode(): string {
@@ -82,12 +82,16 @@ export function ShareControls({ major, yearGrades, onImport }: ShareControlsProp
         major_name: major.name,
         payload: yearGrades,
       });
-      if (dbErr) throw dbErr;
+      if (dbErr) {
+        console.error("[ShareYear] DB error", dbErr);
+        throw new Error(dbErr.message || "Database error while saving share");
+      }
       const url = `${window.location.origin}/?import=${newCode}`;
       setCode(newCode);
       setShareUrl(url);
       setQrUrl(await QRCode.toDataURL(url, { margin: 1, width: 220 }));
     } catch (e) {
+      console.error("[ShareYear] failed", e);
       setError(e instanceof Error ? e.message : "Failed to share");
     } finally {
       setLoading(false);
@@ -104,9 +108,11 @@ export function ShareControls({ major, yearGrades, onImport }: ShareControlsProp
   }
 
   async function handleImport() {
-    if (!major) return;
     const c = importCode.trim().toUpperCase();
-    if (!c) return;
+    if (!c) {
+      setError("Enter a share code");
+      return;
+    }
     setLoading(true);
     setError(null);
     setImportedInfo(null);
@@ -116,17 +122,26 @@ export function ShareControls({ major, yearGrades, onImport }: ShareControlsProp
         .select("payload, major_id, major_name")
         .eq("share_code", c)
         .maybeSingle();
-      if (dbErr) throw dbErr;
-      if (!data) throw new Error("Code not found");
-      if (data.major_id !== major.id) {
-        throw new Error(
-          `This share is for "${data.major_name ?? data.major_id}". Select the same major to import.`,
-        );
+      if (dbErr) {
+        console.error("[ImportYear] DB error", dbErr);
+        throw new Error(dbErr.message || "Database error");
       }
-      onImport(data.payload as YearGrades, data.major_id);
-      setImportedInfo("Grades imported and merged (highest values kept).");
+      if (!data) throw new Error(`No share found for code "${c}"`);
+      if (!data.payload || typeof data.payload !== "object") {
+        throw new Error("Shared data is empty or invalid");
+      }
+      onImport(
+        data.payload as YearGrades,
+        data.major_id,
+        data.major_name ?? null,
+      );
+      const semCount = Object.keys(data.payload as object).length;
+      setImportedInfo(
+        `Imported ${semCount} semester${semCount === 1 ? "" : "s"} from "${data.major_name ?? data.major_id}". Highest grades kept.`,
+      );
       setImportCode("");
     } catch (e) {
+      console.error("[ImportYear] failed", e);
       setError(e instanceof Error ? e.message : "Failed to import");
     } finally {
       setLoading(false);
@@ -139,13 +154,29 @@ export function ShareControls({ major, yearGrades, onImport }: ShareControlsProp
     setTimeout(() => setCopied(false), 1500);
   }
 
+  // Validate inside handlers (not via disabled attr) so SSR/CSR render the
+  // same markup regardless of localStorage state — avoids React hydration tears
+  // that would discard the dialog state mid-flow.
+  function openShareGuarded() {
+    if (!major) {
+      setError("Select your university, institute and major first.");
+      setShareOpen(true);
+      return;
+    }
+    if (!hasGrades) {
+      setError("Add at least one grade before sharing.");
+      setShareOpen(true);
+      return;
+    }
+    openShare();
+  }
+
   return (
     <>
       <button
-        onClick={openShare}
-        disabled={!major || !hasGrades}
-        className="glass-card px-3 py-1.5 flex items-center gap-1.5 text-xs text-foreground hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        title={!major ? "Select a major first" : !hasGrades ? "Add some grades first" : "Share your full year"}
+        onClick={openShareGuarded}
+        className="glass-card px-3 py-1.5 flex items-center gap-1.5 text-xs text-foreground hover:text-primary transition-colors"
+        title="Share your full year (S1 + S2)"
       >
         <Share2 className="w-3.5 h-3.5" />
         <span>Share My Year</span>
@@ -157,9 +188,8 @@ export function ShareControls({ major, yearGrades, onImport }: ShareControlsProp
           setImportedInfo(null);
           setImportOpen(true);
         }}
-        disabled={!major}
-        className="glass-card px-3 py-1.5 flex items-center gap-1.5 text-xs text-foreground hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        title={!major ? "Select a major first" : "Import a shared year"}
+        className="glass-card px-3 py-1.5 flex items-center gap-1.5 text-xs text-foreground hover:text-primary transition-colors"
+        title="Import a shared year"
       >
         <Download className="w-3.5 h-3.5" />
         <span>Import Year</span>
