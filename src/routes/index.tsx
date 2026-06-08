@@ -7,7 +7,7 @@ import { SelectionBar } from "@/components/SelectionBar";
 import { SemesterToggle } from "@/components/SemesterToggle";
 import { UECard } from "@/components/UECard";
 import { ResultsPanel } from "@/components/ResultsPanel";
-import { WaterBackground } from "@/components/WaterBackground";
+import { VideoBackground } from "@/components/VideoBackground";
 import { ShareControls, mergeYearGrades } from "@/components/ShareControls";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import {
@@ -186,7 +186,7 @@ function Index() {
 
   return (
     <div className="min-h-screen mesh-gradient relative">
-      <WaterBackground />
+      <VideoBackground />
       <header className="pt-10 pb-4 text-center">
         <motion.h1
           initial={{ opacity: 0, y: -20 }}
