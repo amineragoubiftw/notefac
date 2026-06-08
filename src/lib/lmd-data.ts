@@ -37,8 +37,8 @@ export interface UniversityDef {
   institutes: InstituteDef[];
 }
 
-// Default exam mix (Examen 70 / DS 30) — Tunisian LMD (ISIGK)
-const FULL: ExamType[] = ["examen", "ds"];
+// Default exam mix (Examen 70 / DS 20 / CC 10)
+const FULL: ExamType[] = ["examen", "ds", "cc"];
 const TRANS: ExamType[] = ["ds1", "ds2", "cc"];
 const EXAM_DS: ExamType[] = ["examen", "ds"];
 
@@ -320,7 +320,7 @@ export function clamp(v: number): number {
   return Math.min(20, Math.max(0, v));
 }
 
-const WEIGHTS_FULL: Partial<Record<ExamType, number>> = { examen: 0.7, ds: 0.3 };
+const WEIGHTS_FULL: Partial<Record<ExamType, number>> = { examen: 0.7, ds: 0.2, cc: 0.1 };
 const WEIGHTS_TRANS: Partial<Record<ExamType, number>> = { ds1: 0.4, ds2: 0.4, cc: 0.2 };
 const WEIGHTS_EXAM_DS: Partial<Record<ExamType, number>> = { examen: 0.7, ds: 0.3 };
 
@@ -330,7 +330,7 @@ function weightsFor(examTypes: ExamType[]): Partial<Record<ExamType, number>> {
   return WEIGHTS_FULL;
 }
 
-export function moduleComputedNote(g: ModuleGrades, examTypes: ExamType[] = ["examen", "ds"]): number | null {
+export function moduleComputedNote(g: ModuleGrades, examTypes: ExamType[] = ["examen", "ds", "cc"]): number | null {
   const W = weightsFor(examTypes);
   const parsed: Partial<Record<ExamType, number>> = {};
   let any = false;
@@ -351,7 +351,7 @@ export function moduleComputedNote(g: ModuleGrades, examTypes: ExamType[] = ["ex
   return totalWeight ? sum / totalWeight : null;
 }
 
-export function moduleFinalNote(g: ModuleGrades, examTypes: ExamType[] = ["examen", "ds"]): number | null {
+export function moduleFinalNote(g: ModuleGrades, examTypes: ExamType[] = ["examen", "ds", "cc"]): number | null {
   const note = moduleComputedNote(g, examTypes);
   const ctrl = parseFloat(g.control ?? "");
   const ctrlClamped = isNaN(ctrl) ? null : clamp(ctrl);
@@ -362,45 +362,17 @@ export function moduleFinalNote(g: ModuleGrades, examTypes: ExamType[] = ["exame
 }
 
 export function ueAverage(ue: UEDef, grades: Record<string, ModuleGrades>): number | null {
-  // Step 1: principal-session average (no control). If UE >= 10, the UE is validated
-  // and individual subjects below 10 are NOT retaken — control grades are ignored.
-  let pw = 0, pc = 0, pAny = false;
-  for (const m of ue.modules) {
-    const g = grades[m.name];
-    if (!g) continue;
-    const types = m.examTypes ?? ["examen", "ds"];
-    const n = moduleComputedNote(g, types);
-    if (n === null) continue;
-    pAny = true;
-    pw += n * m.coef;
-    pc += m.coef;
-  }
-  const principalAvg = pAny && pc > 0 ? pw / pc : null;
-  if (principalAvg !== null && principalAvg >= 10) return principalAvg;
-
-  // Step 2: UE not validated in principal — apply control only to subjects < 10.
   let w = 0, c = 0, any = false;
   for (const m of ue.modules) {
     const g = grades[m.name];
     if (!g) continue;
-    const types = m.examTypes ?? ["examen", "ds"];
-    const principal = moduleComputedNote(g, types);
-    const ctrlRaw = parseFloat(g.control ?? "");
-    const ctrl = isNaN(ctrlRaw) ? null : clamp(ctrlRaw);
-    let n: number | null;
-    if (principal === null) {
-      n = ctrl;
-    } else if (principal >= 10 || ctrl === null) {
-      n = principal;
-    } else {
-      n = Math.max(principal, ctrl);
-    }
+    const n = moduleFinalNote(g, m.examTypes ?? ["examen", "ds", "cc"]);
     if (n === null) continue;
     any = true;
     w += n * m.coef;
     c += m.coef;
   }
-  if (!any || c === 0) return principalAvg;
+  if (!any || c === 0) return null;
   return w / c;
 }
 
