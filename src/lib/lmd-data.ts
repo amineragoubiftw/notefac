@@ -362,17 +362,45 @@ export function moduleFinalNote(g: ModuleGrades, examTypes: ExamType[] = ["exame
 }
 
 export function ueAverage(ue: UEDef, grades: Record<string, ModuleGrades>): number | null {
+  // Step 1: principal-session average (no control). If UE >= 10, the UE is validated
+  // and individual subjects below 10 are NOT retaken — control grades are ignored.
+  let pw = 0, pc = 0, pAny = false;
+  for (const m of ue.modules) {
+    const g = grades[m.name];
+    if (!g) continue;
+    const types = m.examTypes ?? ["examen", "ds"];
+    const n = moduleComputedNote(g, types);
+    if (n === null) continue;
+    pAny = true;
+    pw += n * m.coef;
+    pc += m.coef;
+  }
+  const principalAvg = pAny && pc > 0 ? pw / pc : null;
+  if (principalAvg !== null && principalAvg >= 10) return principalAvg;
+
+  // Step 2: UE not validated in principal — apply control only to subjects < 10.
   let w = 0, c = 0, any = false;
   for (const m of ue.modules) {
     const g = grades[m.name];
     if (!g) continue;
-    const n = moduleFinalNote(g, m.examTypes ?? ["examen", "ds", "cc"]);
+    const types = m.examTypes ?? ["examen", "ds"];
+    const principal = moduleComputedNote(g, types);
+    const ctrlRaw = parseFloat(g.control ?? "");
+    const ctrl = isNaN(ctrlRaw) ? null : clamp(ctrlRaw);
+    let n: number | null;
+    if (principal === null) {
+      n = ctrl;
+    } else if (principal >= 10 || ctrl === null) {
+      n = principal;
+    } else {
+      n = Math.max(principal, ctrl);
+    }
     if (n === null) continue;
     any = true;
     w += n * m.coef;
     c += m.coef;
   }
-  if (!any || c === 0) return null;
+  if (!any || c === 0) return principalAvg;
   return w / c;
 }
 
