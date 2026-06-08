@@ -37,8 +37,8 @@ export interface UniversityDef {
   institutes: InstituteDef[];
 }
 
-// Default exam mix (Examen 70 / DS 20 / CC 10)
-const FULL: ExamType[] = ["examen", "ds", "cc"];
+// Default exam mix (Examen 70 / DS 30) — Tunisian LMD (ISIGK)
+const FULL: ExamType[] = ["examen", "ds"];
 const TRANS: ExamType[] = ["ds1", "ds2", "cc"];
 const EXAM_DS: ExamType[] = ["examen", "ds"];
 
