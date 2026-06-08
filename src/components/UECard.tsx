@@ -45,7 +45,7 @@ export function UECard({ ue, index, grades, onGradeChange }: UECardProps) {
             key={mod.name}
             name={mod.name}
             coef={mod.coef}
-            examTypes={mod.examTypes ?? ["examen", "ds", "cc"]}
+            examTypes={mod.examTypes ?? ["examen", "ds"]}
             grades={grades[mod.name] || {}}
             onChange={(field, value) => onGradeChange(mod.name, field, value)}
           />
