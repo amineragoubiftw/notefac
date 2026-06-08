@@ -330,7 +330,7 @@ function weightsFor(examTypes: ExamType[]): Partial<Record<ExamType, number>> {
   return WEIGHTS_FULL;
 }
 
-export function moduleComputedNote(g: ModuleGrades, examTypes: ExamType[] = ["examen", "ds", "cc"]): number | null {
+export function moduleComputedNote(g: ModuleGrades, examTypes: ExamType[] = ["examen", "ds"]): number | null {
   const W = weightsFor(examTypes);
   const parsed: Partial<Record<ExamType, number>> = {};
   let any = false;
@@ -351,7 +351,7 @@ export function moduleComputedNote(g: ModuleGrades, examTypes: ExamType[] = ["ex
   return totalWeight ? sum / totalWeight : null;
 }
 
-export function moduleFinalNote(g: ModuleGrades, examTypes: ExamType[] = ["examen", "ds", "cc"]): number | null {
+export function moduleFinalNote(g: ModuleGrades, examTypes: ExamType[] = ["examen", "ds"]): number | null {
   const note = moduleComputedNote(g, examTypes);
   const ctrl = parseFloat(g.control ?? "");
   const ctrlClamped = isNaN(ctrl) ? null : clamp(ctrl);
