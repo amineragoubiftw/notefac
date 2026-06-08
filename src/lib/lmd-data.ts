@@ -320,7 +320,7 @@ export function clamp(v: number): number {
   return Math.min(20, Math.max(0, v));
 }
 
-const WEIGHTS_FULL: Partial<Record<ExamType, number>> = { examen: 0.7, ds: 0.2, cc: 0.1 };
+const WEIGHTS_FULL: Partial<Record<ExamType, number>> = { examen: 0.7, ds: 0.3 };
 const WEIGHTS_TRANS: Partial<Record<ExamType, number>> = { ds1: 0.4, ds2: 0.4, cc: 0.2 };
 const WEIGHTS_EXAM_DS: Partial<Record<ExamType, number>> = { examen: 0.7, ds: 0.3 };
 
