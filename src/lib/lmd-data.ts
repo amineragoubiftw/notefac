@@ -373,8 +373,25 @@ export function moduleFinalNote(
 }
 
 export function ueAverage(ue: UEDef, grades: Record<string, ModuleGrades>): number | null {
-  // If any module in this UE has a control grade entered, activate the
-  // "max(exam, note, control)" rule for every module in the UE.
+  // 1) Principal-only average (no control, no max rule).
+  let pw = 0, pc = 0, pAny = false;
+  for (const m of ue.modules) {
+    const g = grades[m.name];
+    if (!g) continue;
+    const n = moduleComputedNote(g, m.examTypes ?? ["examen", "ds", "cc"]);
+    if (n === null) continue;
+    pAny = true;
+    pw += n * m.coef;
+    pc += m.coef;
+  }
+  const principalAvg = pAny && pc > 0 ? pw / pc : null;
+
+  // 2) If the UE is already validated on principal grades (>= 10),
+  // the whole UE is acquired — ignore controls entirely.
+  if (principalAvg !== null && principalAvg >= 10) return principalAvg;
+
+  // 3) Otherwise, if any module has a control, apply max(exam, note, control)
+  // across every module in the UE.
   const anyControl = ue.modules.some((m) => {
     const v = parseFloat(grades[m.name]?.control ?? "");
     return !isNaN(v);
@@ -389,7 +406,7 @@ export function ueAverage(ue: UEDef, grades: Record<string, ModuleGrades>): numb
     w += n * m.coef;
     c += m.coef;
   }
-  if (!any || c === 0) return null;
+  if (!any || c === 0) return principalAvg;
   return w / c;
 }
 
