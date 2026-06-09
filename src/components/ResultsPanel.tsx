@@ -69,7 +69,7 @@ export function ResultsPanel({ ues, grades, maxCredits, extraControl = false }: 
           Détail par UE
         </p>
         {ues.map((ue) => {
-          const a = ueAverage(ue, grades);
+          const a = ueAverage(ue, grades, extraControl);
           const ok = a !== null && a >= 10;
           return (
             <div
