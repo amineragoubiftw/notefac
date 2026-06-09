@@ -66,8 +66,10 @@ function Index() {
   }, [profile]);
 
   const semester = major?.semesters[activeSemester];
+  const majorGrades = (major && allGrades[major.id]) || {};
   const semesterGrades =
-    (major && semester && allGrades[major.id]?.[semester.name]) || {};
+    (semester && majorGrades[semester.name]) || {};
+  const anyControlAll = useMemo(() => hasAnyControl(majorGrades), [majorGrades]);
   const maxCredits = semester?.ues.reduce((s, ue) => s + ue.credits, 0) ?? 0;
 
   useEffect(() => {
