@@ -11,11 +11,12 @@ interface ResultsPanelProps {
   ues: UEDef[];
   grades: Record<string, ModuleGrades>;
   maxCredits: number;
+  extraControl?: boolean;
 }
 
-export function ResultsPanel({ ues, grades, maxCredits }: ResultsPanelProps) {
-  const avg = semesterAverage(ues, grades);
-  const credits = totalCredits(ues, grades);
+export function ResultsPanel({ ues, grades, maxCredits, extraControl = false }: ResultsPanelProps) {
+  const avg = semesterAverage(ues, grades, extraControl);
+  const credits = totalCredits(ues, grades, extraControl);
 
   return (
     <motion.div
