@@ -7,10 +7,11 @@ interface UECardProps {
   index: number;
   grades: Record<string, ModuleGrades>;
   onGradeChange: (moduleName: string, field: keyof ModuleGrades, value: string) => void;
+  extraControl?: boolean;
 }
 
-export function UECard({ ue, index, grades, onGradeChange }: UECardProps) {
-  const avg = ueAverage(ue, grades);
+export function UECard({ ue, index, grades, onGradeChange, extraControl = false }: UECardProps) {
+  const avg = ueAverage(ue, grades, extraControl);
   const acquired = avg !== null && avg >= 10;
 
   return (
