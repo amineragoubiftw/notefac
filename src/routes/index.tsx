@@ -3,7 +3,7 @@ import bgVideoAsset from "@/assets/bg-water.mp4.asset.json";
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trash2, Check, Sparkles } from "lucide-react";
-import { universities, type ModuleGrades, type MajorDef, generalAverage, generalCredits } from "@/lib/lmd-data";
+import { universities, type ModuleGrades, type MajorDef, generalAverage, generalCredits, hasAnyControl } from "@/lib/lmd-data";
 import { SelectionBar } from "@/components/SelectionBar";
 import { SemesterToggle } from "@/components/SemesterToggle";
 import { UECard } from "@/components/UECard";
@@ -66,8 +66,10 @@ function Index() {
   }, [profile]);
 
   const semester = major?.semesters[activeSemester];
+  const majorGrades = (major && allGrades[major.id]) || {};
   const semesterGrades =
-    (major && semester && allGrades[major.id]?.[semester.name]) || {};
+    (semester && majorGrades[semester.name]) || {};
+  const anyControlAll = useMemo(() => hasAnyControl(majorGrades), [majorGrades]);
   const maxCredits = semester?.ues.reduce((s, ue) => s + ue.credits, 0) ?? 0;
 
   useEffect(() => {
@@ -299,6 +301,7 @@ function Index() {
                       index={i}
                       grades={semesterGrades}
                       onGradeChange={handleGradeChange}
+                      extraControl={anyControlAll}
                     />
                   ))}
                 </motion.div>
@@ -310,6 +313,7 @@ function Index() {
                   ues={semester.ues}
                   grades={semesterGrades}
                   maxCredits={maxCredits}
+                  extraControl={anyControlAll}
                 />
               )}
             </div>

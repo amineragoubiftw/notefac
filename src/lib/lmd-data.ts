@@ -372,7 +372,29 @@ export function moduleFinalNote(
   return note;
 }
 
-export function ueAverage(ue: UEDef, grades: Record<string, ModuleGrades>): number | null {
+export function hasAnyControl(
+  grades: Record<string, ModuleGrades> | Record<string, Record<string, ModuleGrades>> | undefined,
+): boolean {
+  if (!grades) return false;
+  for (const v of Object.values(grades)) {
+    if (!v) continue;
+    // Heuristic: ModuleGrades has string values; nested map has object values.
+    const first = Object.values(v)[0];
+    if (typeof first === "object" && first !== null) {
+      if (hasAnyControl(v as Record<string, ModuleGrades>)) return true;
+    } else {
+      const ctrl = parseFloat((v as ModuleGrades).control ?? "");
+      if (!isNaN(ctrl)) return true;
+    }
+  }
+  return false;
+}
+
+export function ueAverage(
+  ue: UEDef,
+  grades: Record<string, ModuleGrades>,
+  extraControl: boolean = false,
+): number | null {
   // 1) Principal-only average (no control, no max rule).
   let pw = 0, pc = 0, pAny = false;
   for (const m of ue.modules) {
@@ -390,13 +412,10 @@ export function ueAverage(ue: UEDef, grades: Record<string, ModuleGrades>): numb
   // the whole UE is acquired — ignore controls entirely.
   if (principalAvg !== null && principalAvg >= 10) return principalAvg;
 
-  // 3) Otherwise, if any module has a control, apply max(exam, note, control)
-  // across every module in the UE.
-  // Any control entered anywhere in the semester activates the max rule everywhere.
-  const anyControl = Object.values(grades).some((g) => {
-    const v = parseFloat(g?.control ?? "");
-    return !isNaN(v);
-  });
+  // 3) Otherwise, if any module has a control (in this UE, this semester,
+  // or anywhere in the whole major via extraControl), apply max(exam, note, control)
+  // to every module in the UE.
+  const anyControl = extraControl || hasAnyControl(grades);
   let w = 0, c = 0, any = false;
   for (const m of ue.modules) {
     const g = grades[m.name];
@@ -411,10 +430,14 @@ export function ueAverage(ue: UEDef, grades: Record<string, ModuleGrades>): numb
   return w / c;
 }
 
-export function semesterAverage(ues: UEDef[], grades: Record<string, ModuleGrades>): number | null {
+export function semesterAverage(
+  ues: UEDef[],
+  grades: Record<string, ModuleGrades>,
+  extraControl: boolean = false,
+): number | null {
   let w = 0, c = 0, any = false;
   for (const ue of ues) {
-    const a = ueAverage(ue, grades);
+    const a = ueAverage(ue, grades, extraControl);
     if (a === null) continue;
     any = true;
     w += a * ue.coef;
@@ -424,10 +447,14 @@ export function semesterAverage(ues: UEDef[], grades: Record<string, ModuleGrade
   return w / c;
 }
 
-export function totalCredits(ues: UEDef[], grades: Record<string, ModuleGrades>): number {
+export function totalCredits(
+  ues: UEDef[],
+  grades: Record<string, ModuleGrades>,
+  extraControl: boolean = false,
+): number {
   let credits = 0;
   for (const ue of ues) {
-    const a = ueAverage(ue, grades);
+    const a = ueAverage(ue, grades, extraControl);
     if (a !== null && a >= 10) credits += ue.credits;
   }
   return credits;
@@ -441,10 +468,11 @@ export function generalAverage(
   major: MajorDef,
   gradesByMajor: Record<string, Record<string, ModuleGrades>>
 ): number | null {
+  const extra = hasAnyControl(gradesByMajor);
   let w = 0, c = 0, any = false;
   for (const sem of major.semesters) {
     const semGrades = gradesByMajor?.[sem.name] || {};
-    const a = semesterAverage(sem.ues, semGrades);
+    const a = semesterAverage(sem.ues, semGrades, extra);
     if (a === null) continue;
     any = true;
     const credits = maxCreditsForSemester(sem.ues);
@@ -459,11 +487,12 @@ export function generalCredits(
   major: MajorDef,
   gradesByMajor: Record<string, Record<string, ModuleGrades>>
 ): { earned: number; max: number } {
+  const extra = hasAnyControl(gradesByMajor);
   let earned = 0, max = 0;
   for (const sem of major.semesters) {
     max += maxCreditsForSemester(sem.ues);
     const semGrades = gradesByMajor?.[sem.name] || {};
-    earned += totalCredits(sem.ues, semGrades);
+    earned += totalCredits(sem.ues, semGrades, extra);
   }
   return { earned, max };
 }
