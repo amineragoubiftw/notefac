@@ -301,6 +301,7 @@ function Index() {
                       index={i}
                       grades={semesterGrades}
                       onGradeChange={handleGradeChange}
+                      extraControl={anyControlAll}
                     />
                   ))}
                 </motion.div>
@@ -312,6 +313,7 @@ function Index() {
                   ues={semester.ues}
                   grades={semesterGrades}
                   maxCredits={maxCredits}
+                  extraControl={anyControlAll}
                 />
               )}
             </div>
