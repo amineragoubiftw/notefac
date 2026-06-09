@@ -355,10 +355,16 @@ export function moduleFinalNote(g: ModuleGrades, examTypes: ExamType[] = ["exame
   const note = moduleComputedNote(g, examTypes);
   const ctrl = parseFloat(g.control ?? "");
   const ctrlClamped = isNaN(ctrl) ? null : clamp(ctrl);
-  if (note === null && ctrlClamped === null) return null;
-  if (note === null) return ctrlClamped;
-  if (ctrlClamped === null) return note;
-  return Math.max(note, ctrlClamped);
+  // When a control grade is entered, the module average is the highest of
+  // EXAM, computed NOTE, and CONTROL.
+  if (ctrlClamped !== null) {
+    const candidates: number[] = [ctrlClamped];
+    if (note !== null) candidates.push(note);
+    const examRaw = parseFloat(g.examen ?? "");
+    if (!isNaN(examRaw)) candidates.push(clamp(examRaw));
+    return Math.max(...candidates);
+  }
+  return note;
 }
 
 export function ueAverage(ue: UEDef, grades: Record<string, ModuleGrades>): number | null {
