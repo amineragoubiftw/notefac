@@ -3,7 +3,7 @@ import bgVideoAsset from "@/assets/bg-water.mp4.asset.json";
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trash2, Check, Sparkles } from "lucide-react";
-import { universities, type ModuleGrades, type MajorDef, generalAverage, generalCredits } from "@/lib/lmd-data";
+import { universities, type ModuleGrades, type MajorDef, generalAverage, generalCredits, hasAnyControl } from "@/lib/lmd-data";
 import { SelectionBar } from "@/components/SelectionBar";
 import { SemesterToggle } from "@/components/SemesterToggle";
 import { UECard } from "@/components/UECard";
