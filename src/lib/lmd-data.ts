@@ -392,8 +392,9 @@ export function ueAverage(ue: UEDef, grades: Record<string, ModuleGrades>): numb
 
   // 3) Otherwise, if any module has a control, apply max(exam, note, control)
   // across every module in the UE.
-  const anyControl = ue.modules.some((m) => {
-    const v = parseFloat(grades[m.name]?.control ?? "");
+  // Any control entered anywhere in the semester activates the max rule everywhere.
+  const anyControl = Object.values(grades).some((g) => {
+    const v = parseFloat(g?.control ?? "");
     return !isNaN(v);
   });
   let w = 0, c = 0, any = false;
