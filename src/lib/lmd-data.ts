@@ -351,28 +351,39 @@ export function moduleComputedNote(g: ModuleGrades, examTypes: ExamType[] = ["ex
   return totalWeight ? sum / totalWeight : null;
 }
 
-export function moduleFinalNote(g: ModuleGrades, examTypes: ExamType[] = ["examen", "ds", "cc"]): number | null {
+export function moduleFinalNote(
+  g: ModuleGrades,
+  examTypes: ExamType[] = ["examen", "ds", "cc"],
+  forceMax: boolean = false,
+): number | null {
   const note = moduleComputedNote(g, examTypes);
   const ctrl = parseFloat(g.control ?? "");
   const ctrlClamped = isNaN(ctrl) ? null : clamp(ctrl);
-  // When a control grade is entered, the module average is the highest of
-  // EXAM, computed NOTE, and CONTROL.
-  if (ctrlClamped !== null) {
-    const candidates: number[] = [ctrlClamped];
+  // When a control grade is entered (here or in a sibling module of the UE),
+  // the module average is the highest of EXAM, computed NOTE, and CONTROL.
+  if (ctrlClamped !== null || forceMax) {
+    const candidates: number[] = [];
+    if (ctrlClamped !== null) candidates.push(ctrlClamped);
     if (note !== null) candidates.push(note);
     const examRaw = parseFloat(g.examen ?? "");
     if (!isNaN(examRaw)) candidates.push(clamp(examRaw));
-    return Math.max(...candidates);
+    return candidates.length ? Math.max(...candidates) : null;
   }
   return note;
 }
 
 export function ueAverage(ue: UEDef, grades: Record<string, ModuleGrades>): number | null {
+  // If any module in this UE has a control grade entered, activate the
+  // "max(exam, note, control)" rule for every module in the UE.
+  const anyControl = ue.modules.some((m) => {
+    const v = parseFloat(grades[m.name]?.control ?? "");
+    return !isNaN(v);
+  });
   let w = 0, c = 0, any = false;
   for (const m of ue.modules) {
     const g = grades[m.name];
     if (!g) continue;
-    const n = moduleFinalNote(g, m.examTypes ?? ["examen", "ds", "cc"]);
+    const n = moduleFinalNote(g, m.examTypes ?? ["examen", "ds", "cc"], anyControl);
     if (n === null) continue;
     any = true;
     w += n * m.coef;
