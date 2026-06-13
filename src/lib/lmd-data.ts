@@ -445,7 +445,7 @@ export function moduleFinalNote(
   forceMax: boolean = false,
 ): number | null {
   const note = moduleComputedNote(g, examTypes);
-  const ctrl = parseFloat(g.control ?? "");
+  const ctrl = parseGrade(g.control);
   const ctrlClamped = isNaN(ctrl) ? null : clamp(ctrl);
   // When a control grade is entered (here or in a sibling module of the UE),
   // the module average is the highest of EXAM, computed NOTE, and CONTROL.
