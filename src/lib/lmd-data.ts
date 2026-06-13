@@ -543,7 +543,7 @@ export function totalCredits(
   let credits = 0;
   for (const ue of ues) {
     const a = ueAverage(ue, grades, extraControl);
-    if (a !== null && a >= 10) credits += ue.credits;
+    if (a !== null && round2(a) >= 10) credits += ue.credits;
   }
   return credits;
 }
