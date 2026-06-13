@@ -392,6 +392,22 @@ export function clamp(v: number): number {
   return Math.min(20, Math.max(0, v));
 }
 
+// Parse a grade string, tolerating French-style "9,5" alongside "9.5".
+// Trailing/leading spaces are ignored. Returns NaN when no number is present
+// (matches parseFloat semantics so callers' isNaN checks keep working).
+function parseGrade(s: string | undefined | null): number {
+  if (s == null) return NaN;
+  return parseFloat(String(s).replace(",", ".").trim());
+}
+
+// Round to 2 decimals using a small epsilon to defeat IEEE-754 drift
+// (e.g. 9.995 should round to 10.00, not 9.99). This is what the UI shows,
+// so credit / validation decisions must use the same rounded value or a
+// displayed 10.00 can end up flagged as a fail.
+export function round2(v: number): number {
+  return Math.round((v + Number.EPSILON) * 100) / 100;
+}
+
 const WEIGHTS_FULL: Partial<Record<ExamType, number>> = { examen: 0.7, ds: 0.2, cc: 0.1 };
 const WEIGHTS_TRANS: Partial<Record<ExamType, number>> = { ds1: 0.4, ds2: 0.4, cc: 0.2 };
 const WEIGHTS_EXAM_DS: Partial<Record<ExamType, number>> = { examen: 0.7, ds: 0.3 };
