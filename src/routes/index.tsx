@@ -211,7 +211,7 @@ function Index() {
           Universités · Établissements · Parcours · Moyennes & Crédits
         </motion.p>
 
-        <div className="max-w-7xl mx-auto px-4 mt-5 flex items-center justify-center gap-3">
+        <div className="max-w-7xl mx-auto px-4 mt-5 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
           <AnimatePresence>
             {showSaved && (
               <motion.div
