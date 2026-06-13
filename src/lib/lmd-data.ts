@@ -423,7 +423,7 @@ export function moduleComputedNote(g: ModuleGrades, examTypes: ExamType[] = ["ex
   const parsed: Partial<Record<ExamType, number>> = {};
   let any = false;
   for (const t of examTypes) {
-    const v = parseFloat(g[t] ?? "");
+    const v = parseGrade(g[t]);
     if (!isNaN(v)) {
       parsed[t] = clamp(v);
       any = true;
