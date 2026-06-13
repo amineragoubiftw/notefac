@@ -21,16 +21,16 @@ export function UECard({ ue, index, grades, onGradeChange, extraControl = false 
       transition={{ delay: index * 0.06, duration: 0.4 }}
       className="glass-card hover-lift p-5"
     >
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-3">
-          <h3 className="text-base font-bold text-foreground">{ue.name}</h3>
-          <span className="text-xs text-muted-foreground">
+      <div className="flex items-start justify-between gap-2 mb-3">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 min-w-0">
+          <h3 className="text-base font-bold text-foreground break-words">{ue.name}</h3>
+          <span className="text-xs text-muted-foreground shrink-0">
             Coef {ue.coef} · {ue.credits} crédits
           </span>
         </div>
         {avg !== null && (
           <div
-            className={`px-3 py-1 rounded-full text-xs font-bold ${
+            className={`shrink-0 px-3 py-1 rounded-full text-xs font-bold ${
               acquired
                 ? "bg-success/15 text-success border border-success/30"
                 : "bg-danger/15 text-danger border border-danger/30"
