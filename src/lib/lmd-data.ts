@@ -498,7 +498,7 @@ export function ueAverage(
 
   // 2) If the UE is already validated on principal grades (>= 10),
   // the whole UE is acquired — ignore controls entirely.
-  if (principalAvg !== null && principalAvg >= 10) return principalAvg;
+  if (principalAvg !== null && round2(principalAvg) >= 10) return principalAvg;
 
   // 3) Otherwise, if any module has a control (in this UE, this semester,
   // or anywhere in the whole major via extraControl), apply max(exam, note, control)
