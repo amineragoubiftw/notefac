@@ -453,7 +453,7 @@ export function moduleFinalNote(
     const candidates: number[] = [];
     if (ctrlClamped !== null) candidates.push(ctrlClamped);
     if (note !== null) candidates.push(note);
-    const examRaw = parseFloat(g.examen ?? "");
+    const examRaw = parseGrade(g.examen);
     if (!isNaN(examRaw)) candidates.push(clamp(examRaw));
     return candidates.length ? Math.max(...candidates) : null;
   }
