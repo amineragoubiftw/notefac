@@ -471,7 +471,7 @@ export function hasAnyControl(
     if (typeof first === "object" && first !== null) {
       if (hasAnyControl(v as Record<string, ModuleGrades>)) return true;
     } else {
-      const ctrl = parseFloat((v as ModuleGrades).control ?? "");
+      const ctrl = parseGrade((v as ModuleGrades).control);
       if (!isNaN(ctrl)) return true;
     }
   }
