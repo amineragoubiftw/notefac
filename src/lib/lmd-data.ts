@@ -52,6 +52,78 @@ export const universities: UniversityDef[] = [
         name: "ISIG Kairouan",
         majors: [
           {
+            id: "se-l1",
+            name: "Sciences Économiques — L1",
+            semesters: [
+              {
+                name: "Semestre 1",
+                ues: [
+                  {
+                    name: "UE1 — Initiation à l'économie", coef: 2.5, credits: 5,
+                    modules: [{ name: "Initiation à l'économie", coef: 2.5, examTypes: FULL }],
+                  },
+                  {
+                    name: "UE2 — Initiation à la gestion", coef: 2.5, credits: 5,
+                    modules: [{ name: "Initiation à la gestion", coef: 2.5, examTypes: FULL }],
+                  },
+                  {
+                    name: "UE3 — Comptabilité", coef: 2.5, credits: 5,
+                    modules: [{ name: "Comptabilité", coef: 2.5, examTypes: FULL }],
+                  },
+                  {
+                    name: "UE4 — Mathématiques (Analyse)", coef: 2.5, credits: 5,
+                    modules: [{ name: "Mathématiques (Analyse)", coef: 2.5, examTypes: FULL }],
+                  },
+                  {
+                    name: "UE5 — Statistique descriptive et calcul des probabilités", coef: 2.5, credits: 5,
+                    modules: [{ name: "Statistique descriptive et calcul des probabilités", coef: 2.5, examTypes: FULL }],
+                  },
+                  {
+                    name: "UE6 — Unité transversale", coef: 2.5, credits: 5,
+                    modules: [
+                      { name: "Langue étrangère 1", coef: 0.75, examTypes: TRANS },
+                      { name: "Langue étrangère 2", coef: 0.75, examTypes: TRANS },
+                      { name: "Compétences digitales", coef: 1, examTypes: TRANS },
+                    ],
+                  },
+                ],
+              },
+              {
+                name: "Semestre 2",
+                ues: [
+                  {
+                    name: "UE1 — Microéconomie", coef: 3, credits: 6,
+                    modules: [{ name: "Microéconomie", coef: 3, examTypes: FULL }],
+                  },
+                  {
+                    name: "UE2 — Macroéconomie", coef: 2.5, credits: 5,
+                    modules: [{ name: "Macroéconomie", coef: 2.5, examTypes: FULL }],
+                  },
+                  {
+                    name: "UE3 — Comptabilité financière 2", coef: 2.5, credits: 5,
+                    modules: [{ name: "Comptabilité financière 2", coef: 2.5, examTypes: FULL }],
+                  },
+                  {
+                    name: "UE4 — Mathématiques (Algèbre)", coef: 2.5, credits: 5,
+                    modules: [{ name: "Mathématiques (Algèbre)", coef: 2.5, examTypes: FULL }],
+                  },
+                  {
+                    name: "UE5 — Principes de droit", coef: 2, credits: 4,
+                    modules: [{ name: "Principes de droit", coef: 2, examTypes: FULL }],
+                  },
+                  {
+                    name: "UE6 — Unité transversale", coef: 2.5, credits: 5,
+                    modules: [
+                      { name: "Langue étrangère 2", coef: 0.75, examTypes: TRANS },
+                      { name: "Langue étrangère 1", coef: 0.75, examTypes: TRANS },
+                      { name: "Compétences digitales", coef: 1, examTypes: TRANS },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+          {
             id: "si-l1",
             name: "Sciences de l'Informatique — L1",
             semesters: [
