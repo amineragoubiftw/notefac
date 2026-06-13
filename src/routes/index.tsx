@@ -211,7 +211,7 @@ function Index() {
           Universités · Établissements · Parcours · Moyennes & Crédits
         </motion.p>
 
-        <div className="max-w-7xl mx-auto px-4 mt-5 flex items-center justify-center gap-3">
+        <div className="max-w-7xl mx-auto px-4 mt-5 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
           <AnimatePresence>
             {showSaved && (
               <motion.div
@@ -363,11 +363,11 @@ function GeneralSummary({
       className="max-w-7xl mx-auto px-4 pb-16"
     >
       <div className="glass-card p-6 md:p-8">
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg md:text-xl font-bold text-foreground">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-5">
+          <h2 className="text-lg md:text-xl font-bold text-foreground break-words min-w-0">
             🏆 Résultats Généraux — {major.name}
           </h2>
-          <span className="text-xs text-muted-foreground">
+          <span className="text-xs text-muted-foreground shrink-0">
             Tous les semestres
           </span>
         </div>

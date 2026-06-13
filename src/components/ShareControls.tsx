@@ -41,8 +41,8 @@ export function mergeYearGrades(current: YearGrades, imported: YearGrades): Year
         keyof ModuleGrades
       >;
       for (const f of fields) {
-        const a = parseFloat(curMod[f] ?? "");
-        const b = parseFloat(impMod[f] ?? "");
+        const a = parseFloat((curMod[f] ?? "").replace(",", "."));
+        const b = parseFloat((impMod[f] ?? "").replace(",", "."));
         const aValid = !Number.isNaN(a);
         const bValid = !Number.isNaN(b);
         if (aValid && bValid) merged[f] = String(Math.max(a, b));

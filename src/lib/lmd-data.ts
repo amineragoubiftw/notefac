@@ -392,6 +392,22 @@ export function clamp(v: number): number {
   return Math.min(20, Math.max(0, v));
 }
 
+// Parse a grade string, tolerating French-style "9,5" alongside "9.5".
+// Trailing/leading spaces are ignored. Returns NaN when no number is present
+// (matches parseFloat semantics so callers' isNaN checks keep working).
+function parseGrade(s: string | undefined | null): number {
+  if (s == null) return NaN;
+  return parseFloat(String(s).replace(",", ".").trim());
+}
+
+// Round to 2 decimals using a small epsilon to defeat IEEE-754 drift
+// (e.g. 9.995 should round to 10.00, not 9.99). This is what the UI shows,
+// so credit / validation decisions must use the same rounded value or a
+// displayed 10.00 can end up flagged as a fail.
+export function round2(v: number): number {
+  return Math.round((v + Number.EPSILON) * 100) / 100;
+}
+
 const WEIGHTS_FULL: Partial<Record<ExamType, number>> = { examen: 0.7, ds: 0.2, cc: 0.1 };
 const WEIGHTS_TRANS: Partial<Record<ExamType, number>> = { ds1: 0.4, ds2: 0.4, cc: 0.2 };
 const WEIGHTS_EXAM_DS: Partial<Record<ExamType, number>> = { examen: 0.7, ds: 0.3 };
@@ -407,7 +423,7 @@ export function moduleComputedNote(g: ModuleGrades, examTypes: ExamType[] = ["ex
   const parsed: Partial<Record<ExamType, number>> = {};
   let any = false;
   for (const t of examTypes) {
-    const v = parseFloat(g[t] ?? "");
+    const v = parseGrade(g[t]);
     if (!isNaN(v)) {
       parsed[t] = clamp(v);
       any = true;
@@ -429,7 +445,7 @@ export function moduleFinalNote(
   forceMax: boolean = false,
 ): number | null {
   const note = moduleComputedNote(g, examTypes);
-  const ctrl = parseFloat(g.control ?? "");
+  const ctrl = parseGrade(g.control);
   const ctrlClamped = isNaN(ctrl) ? null : clamp(ctrl);
   // When a control grade is entered (here or in a sibling module of the UE),
   // the module average is the highest of EXAM, computed NOTE, and CONTROL.
@@ -437,7 +453,7 @@ export function moduleFinalNote(
     const candidates: number[] = [];
     if (ctrlClamped !== null) candidates.push(ctrlClamped);
     if (note !== null) candidates.push(note);
-    const examRaw = parseFloat(g.examen ?? "");
+    const examRaw = parseGrade(g.examen);
     if (!isNaN(examRaw)) candidates.push(clamp(examRaw));
     return candidates.length ? Math.max(...candidates) : null;
   }
@@ -455,7 +471,7 @@ export function hasAnyControl(
     if (typeof first === "object" && first !== null) {
       if (hasAnyControl(v as Record<string, ModuleGrades>)) return true;
     } else {
-      const ctrl = parseFloat((v as ModuleGrades).control ?? "");
+      const ctrl = parseGrade((v as ModuleGrades).control);
       if (!isNaN(ctrl)) return true;
     }
   }
@@ -482,7 +498,7 @@ export function ueAverage(
 
   // 2) If the UE is already validated on principal grades (>= 10),
   // the whole UE is acquired — ignore controls entirely.
-  if (principalAvg !== null && principalAvg >= 10) return principalAvg;
+  if (principalAvg !== null && round2(principalAvg) >= 10) return principalAvg;
 
   // 3) Otherwise, if any module has a control (in this UE, this semester,
   // or anywhere in the whole major via extraControl), apply max(exam, note, control)
@@ -527,7 +543,7 @@ export function totalCredits(
   let credits = 0;
   for (const ue of ues) {
     const a = ueAverage(ue, grades, extraControl);
-    if (a !== null && a >= 10) credits += ue.credits;
+    if (a !== null && round2(a) >= 10) credits += ue.credits;
   }
   return credits;
 }
