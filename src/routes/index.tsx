@@ -104,10 +104,11 @@ function Index() {
         return;
       }
       if (!data) return;
+      const shared = data;
       // Locate the major across universities to also set profile if empty
       for (const u of universities) {
         for (const i of u.institutes) {
-          const m = i.majors.find((x) => x.id === data.major_id);
+          const m = i.majors.find((x) => x.id === shared.major_id);
           if (m) {
             setProfile((p) =>
               p.majorId === m.id
@@ -118,7 +119,7 @@ function Index() {
               ...prev,
               [m.id]: mergeYearGrades(
                 prev[m.id] || {},
-                data.payload as Record<string, Record<string, ModuleGrades>>,
+                shared.payload as Record<string, Record<string, ModuleGrades>>,
               ),
             }));
             return;
