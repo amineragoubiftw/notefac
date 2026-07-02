@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import bgVideoAsset from "@/assets/bg-water.mp4.asset.json";
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trash2, Check, Sparkles } from "lucide-react";
@@ -29,10 +28,6 @@ export const Route = createFileRoute("/")({
     meta: [
       { title: "Calculateur LMD Tunisien — Moyennes & Crédits" },
       { name: "description", content: "Calculateur universel de moyennes et crédits pour le système LMD tunisien. Sélectionnez votre université, institut et parcours." },
-    ],
-    links: [
-      // Start downloading the background video as soon as HTML arrives.
-      { rel: "preload", as: "video", href: bgVideoAsset.url, type: "video/mp4" },
     ],
   }),
 });
@@ -95,17 +90,26 @@ function Index() {
     window.history.replaceState({}, "", url.toString());
 
     (async () => {
-      const { supabase } = await import("@/integrations/supabase/client");
-      const { data } = await supabase
-        .from("year_shares")
-        .select("payload, major_id, major_name")
-        .eq("share_code", code.toUpperCase())
-        .maybeSingle();
+      type SharePayload = { payload: unknown; major_id: string; major_name: string | null };
+      let data: SharePayload | null = null;
+      try {
+        const { supabase } = await import("@/integrations/supabase/client");
+        const res = await supabase
+          .from("year_shares")
+          .select("payload, major_id, major_name")
+          .eq("share_code", code.toUpperCase())
+          .maybeSingle();
+        data = (res.data as SharePayload | null) ?? null;
+      } catch (err) {
+        console.warn("[import] share fetch failed", err);
+        return;
+      }
       if (!data) return;
+      const shared = data;
       // Locate the major across universities to also set profile if empty
       for (const u of universities) {
         for (const i of u.institutes) {
-          const m = i.majors.find((x) => x.id === data.major_id);
+          const m = i.majors.find((x) => x.id === shared.major_id);
           if (m) {
             setProfile((p) =>
               p.majorId === m.id
@@ -116,7 +120,7 @@ function Index() {
               ...prev,
               [m.id]: mergeYearGrades(
                 prev[m.id] || {},
-                data.payload as Record<string, Record<string, ModuleGrades>>,
+                shared.payload as Record<string, Record<string, ModuleGrades>>,
               ),
             }));
             return;
