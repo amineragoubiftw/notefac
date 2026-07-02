@@ -90,12 +90,19 @@ function Index() {
     window.history.replaceState({}, "", url.toString());
 
     (async () => {
-      const { supabase } = await import("@/integrations/supabase/client");
-      const { data } = await supabase
-        .from("year_shares")
-        .select("payload, major_id, major_name")
-        .eq("share_code", code.toUpperCase())
-        .maybeSingle();
+      let data: { payload: unknown; major_id: string; major_name: string | null } | null = null;
+      try {
+        const { supabase } = await import("@/integrations/supabase/client");
+        const res = await supabase
+          .from("year_shares")
+          .select("payload, major_id, major_name")
+          .eq("share_code", code.toUpperCase())
+          .maybeSingle();
+        data = res.data as typeof data;
+      } catch (err) {
+        console.warn("[import] share fetch failed", err);
+        return;
+      }
       if (!data) return;
       // Locate the major across universities to also set profile if empty
       for (const u of universities) {
