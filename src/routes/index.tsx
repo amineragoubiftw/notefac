@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import bgVideoAsset from "@/assets/bg-water.mp4.asset.json";
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trash2, Check, Sparkles } from "lucide-react";
@@ -29,10 +28,6 @@ export const Route = createFileRoute("/")({
     meta: [
       { title: "Calculateur LMD Tunisien — Moyennes & Crédits" },
       { name: "description", content: "Calculateur universel de moyennes et crédits pour le système LMD tunisien. Sélectionnez votre université, institut et parcours." },
-    ],
-    links: [
-      // Start downloading the background video as soon as HTML arrives.
-      { rel: "preload", as: "video", href: bgVideoAsset.url, type: "video/mp4" },
     ],
   }),
 });
