@@ -90,7 +90,8 @@ function Index() {
     window.history.replaceState({}, "", url.toString());
 
     (async () => {
-      let data: { payload: unknown; major_id: string; major_name: string | null } | null = null;
+      type SharePayload = { payload: unknown; major_id: string; major_name: string | null };
+      let data: SharePayload | null = null;
       try {
         const { supabase } = await import("@/integrations/supabase/client");
         const res = await supabase
@@ -98,7 +99,7 @@ function Index() {
           .select("payload, major_id, major_name")
           .eq("share_code", code.toUpperCase())
           .maybeSingle();
-        data = res.data as typeof data;
+        data = (res.data as SharePayload | null) ?? null;
       } catch (err) {
         console.warn("[import] share fetch failed", err);
         return;
