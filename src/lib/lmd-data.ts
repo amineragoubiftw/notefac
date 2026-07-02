@@ -44,13 +44,347 @@ const EXAM_DS: ExamType[] = ["examen", "ds"];
 
 export const universities: UniversityDef[] = [
   {
+    id: "ut",
+    name: "Université de Tunis",
+    institutes: [
+      { id: "institut-superieur-de-gestion-de-tunis", name: "Institut supérieur de gestion de Tunis", majors: [] },
+      { id: "faculte-des-sciences-humaines-et-sociale", name: "Faculté des sciences humaines et sociales de Tunis", majors: [] },
+      { id: "institut-superieur-de-l-animation-pour-l", name: "Institut supérieur de l'animation pour la jeunesse et la culture de Bir El Bey", majors: [] },
+      { id: "institut-superieur-des-beaux-arts-de-tun", name: "Institut supérieur des beaux-arts de Tunis", majors: [] },
+      { id: "institut-superieur-d-art-dramatique-de-t", name: "Institut supérieur d'art dramatique de Tunis", majors: [] },
+      { id: "ecole-nationale-superieure-des-ingenieur", name: "Ecole nationale supérieure des ingénieurs de Tunis", majors: [] },
+      { id: "institut-superieur-des-metiers-du-patrim", name: "Institut supérieur des métiers du patrimoine de Tunis", majors: [] },
+      { id: "institut-superieur-de-musique-de-tunis", name: "Institut supérieur de musique de Tunis", majors: [] },
+      { id: "ecole-superieure-des-sciences-economique", name: "Ecole supérieure des sciences économiques et commerciales de Tunis", majors: [] },
+      { id: "institut-superieur-des-etudes-appliquees", name: "Institut supérieur des études appliquées en humanité de Zaghouan", majors: [] },
+      { id: "institut-preparatoire-aux-etudes-littera", name: "Institut préparatoire aux études littéraires et des sciences humaines de Tunis", majors: [] },
+    ],
+  },
+  {
+    id: "um",
+    name: "Université de Manouba",
+    institutes: [
+      { id: "institut-superieur-de-biotechnologie-de-", name: "Institut supérieur de biotechnologie de Sidi Thabet", majors: [] },
+      { id: "ecole-superieure-de-commerce-de-tunis", name: "Ecole supérieure de commerce de Tunis", majors: [] },
+      { id: "ecole-superieure-d-economie-numerique-de", name: "Ecole supérieure d'économie numérique de Manouba", majors: [] },
+      { id: "ecole-superieure-des-sciences-et-technol", name: "Ecole supérieure des sciences et technologie de design", majors: [] },
+      { id: "institut-superieur-du-sport-et-de-l-educ", name: "Institut supérieur du sport et de l'éducation physique de Ksar-Saïd", majors: [] },
+      { id: "institut-national-du-travail-et-des-etud", name: "Institut national du travail et des études sociales de Tunis", majors: [] },
+      { id: "institut-superieur-de-comptabilite-et-d-", name: "Institut supérieur de comptabilité et d'administration des entreprises", majors: [] },
+      { id: "institut-de-presse-et-des-sciences-de-l-", name: "Institut de presse et des sciences de l'information", majors: [] },
+      { id: "institut-superieur-de-documentation", name: "Institut supérieur de documentation", majors: [] },
+      { id: "faculte-des-lettres-arts-et-humanites-de", name: "Faculté des lettres, arts et humanités de Manouba", majors: [] },
+      { id: "institut-superieur-de-l-education-specia", name: "Institut supérieur de l'éducation spécialisée", majors: [] },
+      { id: "institut-superieur-des-arts-du-multimedi", name: "Institut supérieur des arts du multimédia de Manouba", majors: [] },
+    ],
+  },
+  {
+    id: "utm",
+    name: "Université de Tunis El Manar",
+    institutes: [
+      { id: "fst", name: "Faculté des sciences de Tunis", majors: [
+
+          {
+            id: "math-l1",
+            name: "Mathématiques — L1",
+            semesters: [
+              {
+                name: "Semestre 1",
+                ues: [
+                  {
+                    name: "UE1 — Analyse", coef: 4, credits: 8,
+                    modules: [
+                      { name: "Analyse 1", coef: 2, examTypes: FULL },
+                      { name: "Topologie", coef: 2, examTypes: FULL },
+                    ],
+                  },
+                  {
+                    name: "UE2 — Algèbre", coef: 4, credits: 8,
+                    modules: [
+                      { name: "Algèbre linéaire 1", coef: 2, examTypes: FULL },
+                      { name: "Arithmétique", coef: 2, examTypes: FULL },
+                    ],
+                  },
+                  {
+                    name: "UE3 — Physique", coef: 3, credits: 6,
+                    modules: [
+                      { name: "Mécanique", coef: 1.5, examTypes: FULL },
+                      { name: "Électricité", coef: 1.5, examTypes: FULL },
+                    ],
+                  },
+                  {
+                    name: "UE4 — Informatique", coef: 2, credits: 4,
+                    modules: [{ name: "Programmation C", coef: 2, examTypes: FULL }],
+                  },
+                  {
+                    name: "UE5 — Langues", coef: 2, credits: 4,
+                    modules: [
+                      { name: "Anglais", coef: 1, examTypes: FULL },
+                      { name: "Français", coef: 1, examTypes: FULL },
+                    ],
+                  },
+                ],
+              },
+              {
+                name: "Semestre 2",
+                ues: [
+                  {
+                    name: "UE1 — Analyse 2", coef: 4, credits: 8,
+                    modules: [
+                      { name: "Analyse 2", coef: 2, examTypes: FULL },
+                      { name: "Suites & séries", coef: 2, examTypes: FULL },
+                    ],
+                  },
+                  {
+                    name: "UE2 — Algèbre 2", coef: 4, credits: 8,
+                    modules: [
+                      { name: "Algèbre linéaire 2", coef: 2, examTypes: FULL },
+                      { name: "Géométrie", coef: 2, examTypes: FULL },
+                    ],
+                  },
+                  {
+                    name: "UE3 — Probabilités", coef: 3, credits: 6,
+                    modules: [{ name: "Probabilités", coef: 3, examTypes: FULL }],
+                  },
+                  {
+                    name: "UE4 — Statistiques", coef: 2, credits: 4,
+                    modules: [{ name: "Statistiques descriptives", coef: 2, examTypes: FULL }],
+                  },
+                  {
+                    name: "UE5 — Transversale", coef: 2, credits: 4,
+                    modules: [
+                      { name: "Anglais 2", coef: 1, examTypes: TRANS },
+                      { name: "Culture & entrepreneuriat", coef: 1, examTypes: TRANS },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+      ] },
+      { id: "faculte-des-sciences-economiques-et-de-g", name: "Faculté des sciences économiques et de gestion de Tunis", majors: [] },
+      { id: "faculte-de-droit-et-des-sciences-politiq", name: "Faculté de droit et des sciences politiques de Tunis", majors: [] },
+      { id: "ecole-superieure-des-sciences-et-techniq", name: "Ecole supérieure des sciences et techniques de la santé de Tunis", majors: [] },
+      { id: "institut-superieur-des-technologies-medi", name: "Institut supérieur des technologies médicales de Tunis", majors: [] },
+      { id: "institut-superieur-des-sciences-biologiq", name: "Institut supérieur des sciences biologiques appliquées de Tunis", majors: [] },
+      { id: "institut-superieur-des-sciences-humaines", name: "Institut supérieur des sciences humaines de Tunis", majors: [] },
+      { id: "institut-superieur-de-l-informatique", name: "Institut supérieur de l'informatique", majors: [] },
+      { id: "institut-superieur-des-sciences-infirmie", name: "Institut supérieur des sciences infirmières de Tunis", majors: [] },
+    ],
+  },
+  {
+    id: "uc",
+    name: "Université de Carthage",
+    institutes: [
+      { id: "institut-superieur-des-etudes-touristiqu", name: "Institut supérieur des études touristiques et hôtelières de Sidi Dhrif", majors: [] },
+      { id: "ecole-superieure-des-industries-alimenta", name: "Ecole supérieure des industries alimentaires de Tunis", majors: [] },
+      { id: "ecole-superieure-d-agriculture-de-mateur", name: "Ecole supérieure d'agriculture de Mateur", majors: [] },
+      { id: "ecole-superieure-d-agriculture-de-mogran", name: "Ecole supérieure d'agriculture de Mograne", majors: [] },
+      { id: "faculte-des-sciences-juridiques-et-polit", name: "Faculté des sciences juridiques et politiques et sociales de Tunis", majors: [] },
+      { id: "ecole-nationale-d-ingenieurs-de-carthage", name: "Ecole nationale d'ingénieurs de Carthage", majors: [] },
+      { id: "faculte-des-sciences-de-bizerte", name: "Faculté des sciences de Bizerte", majors: [] },
+      { id: "institut-superieur-des-langues-de-tunis", name: "Institut supérieur des langues de Tunis", majors: [] },
+      { id: "institut-superieur-des-beaux-arts-de-nab", name: "Institut supérieur des beaux-arts de Nabeul", majors: [] },
+      { id: "faculte-des-sciences-economiques-et-de-g", name: "Faculté des sciences économiques et de gestion de Nabeul", majors: [] },
+      { id: "institut-superieur-des-langues-de-nabeul", name: "Institut supérieur des langues de Nabeul", majors: [] },
+      { id: "institut-superieur-de-gestion-de-bizerte", name: "Institut supérieur de gestion de Bizerte", majors: [] },
+      { id: "institut-superieur-des-cadres-de-l-enfan", name: "Institut supérieur des cadres de l'enfance", majors: [] },
+      { id: "institut-superieur-des-sciences-applique", name: "Institut supérieur des sciences appliquées et technologie de Mateur", majors: [] },
+      { id: "institut-superieur-des-technologies-de-l", name: "Institut supérieur des technologies de l'environnement, de l'urbanisme et du bâtiment", majors: [] },
+      { id: "institut-superieur-des-sciences-de-la-me", name: "Institut supérieur des sciences de la mer de Bizerte", majors: [] },
+      { id: "institut-superieur-des-sciences-et-techn", name: "Institut supérieur des sciences et technologie de l'environnement de Borj Cédria", majors: [] },
+    ],
+  },
+  {
+    id: "uez",
+    name: "Université Ez-Zitouna",
+    institutes: [
+      { id: "institut-superieur-de-la-civilisation-is", name: "Institut supérieur de la civilisation islamique de Tunis", majors: [] },
+      { id: "institut-superieur-de-theologie-de-tunis", name: "Institut supérieur de théologie de Tunis", majors: [] },
+      { id: "institut-superieur-des-sciences-islamiqu", name: "Institut supérieur des sciences islamiques de Kairouan", majors: [] },
+    ],
+  },
+  {
+    id: "uso",
+    name: "Université de Sousse",
+    institutes: [
+      { id: "faculte-des-lettres-et-des-sciences-huma", name: "Faculté des lettres et des sciences humaines de Sousse", majors: [] },
+      { id: "institut-superieur-d-informatique-et-des", name: "Institut supérieur d'informatique et des technologies de communication de Sousse", majors: [] },
+      { id: "ecole-superieure-des-sciences-et-techniq", name: "Ecole supérieure des sciences et techniques de la santé de Sousse", majors: [] },
+      { id: "institut-superieur-des-beaux-arts-de-sou", name: "Institut supérieur des beaux-arts de Sousse", majors: [] },
+      { id: "institut-superieur-des-sciences-infirmie", name: "Institut supérieur des sciences infirmières de Sousse", majors: [] },
+      { id: "institut-superieur-de-finances-et-de-fis", name: "Institut supérieur de finances et de fiscalité de Sousse", majors: [] },
+      { id: "institut-superieur-des-sciences-applique", name: "Institut supérieur des sciences appliquées et de technologie de Sousse", majors: [] },
+      { id: "institut-superieur-de-musique-de-sousse", name: "Institut supérieur de musique de Sousse", majors: [] },
+      { id: "institut-superieur-du-transport-et-de-la", name: "Institut supérieur du transport et de la logistique de Sousse", majors: [] },
+      { id: "faculte-des-sciences-economiques-et-de-g", name: "Faculté des sciences économiques et de gestion de Sousse", majors: [] },
+      { id: "ecole-superieure-des-sciences-et-de-la-t", name: "Ecole supérieure des sciences et de la technologie de Hammam Sousse", majors: [] },
+      { id: "institut-superieur-de-gestion-de-sousse", name: "Institut supérieur de gestion de Sousse", majors: [] },
+      { id: "institut-des-hautes-etudes-commerciales-", name: "Institut des hautes études commerciales de Sousse", majors: [] },
+      { id: "institut-superieur-agronomique-de-chott-", name: "Institut supérieur agronomique de Chott-Mariem", majors: [] },
+      { id: "faculte-de-droit-et-des-sciences-politiq", name: "Faculté de droit et des sciences politiques de Sousse", majors: [] },
+    ],
+  },
+  {
+    id: "us",
+    name: "Université de Sfax",
+    institutes: [
+      { id: "institut-superieur-d-informatique-et-de-", name: "Institut supérieur d'informatique et de multimédia de Sfax", majors: [] },
+      { id: "institut-superieur-de-biotechnologies-de", name: "Institut supérieur de biotechnologies de Sfax", majors: [] },
+      { id: "institut-superieur-des-arts-et-metiers-d", name: "Institut supérieur des arts et métiers de Sfax", majors: [] },
+      { id: "faculte-des-sciences-de-sfax", name: "Faculté des sciences de Sfax", majors: [] },
+      { id: "ecole-superieure-de-commerce-de-sfax", name: "Ecole supérieure de commerce de Sfax", majors: [] },
+      { id: "ecole-superieure-des-sciences-et-techniq", name: "Ecole supérieure des sciences et techniques de la santé de Sfax", majors: [] },
+      { id: "institut-des-hautes-etudes-commerciales-", name: "Institut des hautes études commerciales de Sfax", majors: [] },
+      { id: "institut-superieur-d-administration-des-", name: "Institut supérieur d'administration des affaires de Sfax", majors: [] },
+      { id: "fseg", name: "Faculté des sciences économiques et de gestion de Sfax", majors: [
+
+          {
+            id: "gestion-l1",
+            name: "Sciences de Gestion — L1",
+            semesters: [
+              {
+                name: "Semestre 1",
+                ues: [
+                  {
+                    name: "UE1 — Économie", coef: 4, credits: 8,
+                    modules: [
+                      { name: "Microéconomie", coef: 2, examTypes: FULL },
+                      { name: "Macroéconomie", coef: 2, examTypes: FULL },
+                    ],
+                  },
+                  {
+                    name: "UE2 — Comptabilité", coef: 4, credits: 8,
+                    modules: [{ name: "Comptabilité financière 1", coef: 4, examTypes: FULL }],
+                  },
+                  {
+                    name: "UE3 — Maths & Stats", coef: 3, credits: 6,
+                    modules: [
+                      { name: "Mathématiques", coef: 1.5, examTypes: FULL },
+                      { name: "Statistiques", coef: 1.5, examTypes: FULL },
+                    ],
+                  },
+                  {
+                    name: "UE4 — Droit", coef: 2, credits: 4,
+                    modules: [{ name: "Introduction au droit", coef: 2, examTypes: FULL }],
+                  },
+                  {
+                    name: "UE5 — Langues", coef: 2, credits: 4,
+                    modules: [
+                      { name: "Anglais", coef: 1, examTypes: FULL },
+                      { name: "Communication", coef: 1, examTypes: FULL },
+                    ],
+                  },
+                ],
+              },
+              {
+                name: "Semestre 2",
+                ues: [
+                  {
+                    name: "UE1 — Gestion", coef: 4, credits: 8,
+                    modules: [
+                      { name: "Introduction à la gestion", coef: 2, examTypes: FULL },
+                      { name: "Marketing fondamental", coef: 2, examTypes: FULL },
+                    ],
+                  },
+                  {
+                    name: "UE2 — Comptabilité 2", coef: 4, credits: 8,
+                    modules: [{ name: "Comptabilité financière 2", coef: 4, examTypes: FULL }],
+                  },
+                  {
+                    name: "UE3 — Maths financières", coef: 3, credits: 6,
+                    modules: [{ name: "Mathématiques financières", coef: 3, examTypes: FULL }],
+                  },
+                  {
+                    name: "UE4 — Informatique", coef: 2, credits: 4,
+                    modules: [{ name: "Bureautique & TIC", coef: 2, examTypes: FULL }],
+                  },
+                  {
+                    name: "UE5 — Transversale", coef: 2, credits: 4,
+                    modules: [
+                      { name: "Anglais des affaires", coef: 1, examTypes: TRANS },
+                      { name: "Techniques d'expression", coef: 1, examTypes: TRANS },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+      ] },
+      { id: "institut-superieur-du-sport-et-de-l-educ", name: "Institut supérieur du sport et de l'éducation physique de Sfax", majors: [] },
+      { id: "faculte-des-lettres-et-des-sciences-huma", name: "Faculté des lettres et des sciences humaines de Sfax", majors: [] },
+      { id: "institut-superieur-des-sciences-infirmie", name: "Institut supérieur des sciences infirmières de Sfax", majors: [] },
+      { id: "ecole-nationale-d-electronique-et-des-te", name: "Ecole nationale d'électronique et des télécommunications de Sfax", majors: [] },
+      { id: "faculte-de-droit-de-sfax", name: "Faculté de droit de Sfax", majors: [] },
+      { id: "institut-superieur-de-musique-de-sfax", name: "Institut supérieur de musique de Sfax", majors: [] },
+      { id: "institut-superieur-de-gestion-industriel", name: "Institut supérieur de gestion industrielle de Sfax", majors: [] },
+    ],
+  },
+  {
+    id: "uj",
+    name: "Université de Jendouba",
+    institutes: [
+      { id: "ecole-superieure-d-agriculture-du-kef", name: "Ecole supérieure d'agriculture du Kef", majors: [] },
+      { id: "ecole-superieure-des-ingenieurs-de-medje", name: "Ecole supérieure des ingénieurs de Medjez El Bab", majors: [] },
+      { id: "institut-superieur-des-sciences-humaines", name: "Institut supérieur des sciences humaines de Jendouba", majors: [] },
+      { id: "institut-superieur-de-langues-appliquees", name: "Institut supérieur de langues appliquées et d'informatique de Béja", majors: [] },
+      { id: "institut-superieur-de-musique-et-de-thea", name: "Institut supérieur de musique et de théâtre du Kef", majors: [] },
+      { id: "institut-superieur-d-arts-et-metiers-de-", name: "Institut supérieur d'arts et métiers de Siliana", majors: [] },
+      { id: "institut-superieur-de-biotechnologie-de-", name: "Institut supérieur de biotechnologie de Béja", majors: [] },
+      { id: "institut-superieur-des-sciences-infirmie", name: "Institut supérieur des sciences infirmières du Kef", majors: [] },
+      { id: "faculte-des-sciences-juridiques-economiq", name: "Faculté des sciences juridiques, économiques et de gestion de Jendouba", majors: [] },
+      { id: "institut-superieur-des-etudes-appliquees", name: "Institut supérieur des études appliquées en humanités du Kef", majors: [] },
+      { id: "institut-superieur-du-sport-et-de-l-educ", name: "Institut supérieur du sport et de l'éducation physique du Kef", majors: [] },
+      { id: "institut-superieur-de-l-informatique-du-", name: "Institut supérieur de l'informatique du Kef", majors: [] },
+      { id: "institut-sylvo-pastoral-de-tabarka", name: "Institut sylvo-pastoral de Tabarka", majors: [] },
+    ],
+  },
+  {
+    id: "ugab",
+    name: "Université de Gabès",
+    institutes: [
+      { id: "institut-superieur-d-informatique-et-de-", name: "Institut supérieur d'informatique et de multimédia de Gabès", majors: [] },
+      { id: "institut-superieur-des-etudes-juridiques", name: "Institut supérieur des études juridiques de Gabès", majors: [] },
+      { id: "institut-superieur-des-sciences-humaines", name: "Institut supérieur des sciences humaines de Médenine", majors: [] },
+      { id: "institut-superieur-de-l-informatique-de-", name: "Institut supérieur de l'informatique de Médenine", majors: [] },
+      { id: "institut-superieur-des-langues-de-gabes", name: "Institut supérieur des langues de Gabès", majors: [] },
+      { id: "institut-superieur-des-arts-et-metiers-d", name: "Institut supérieur des arts et métiers de Gabès", majors: [] },
+      { id: "institut-superieur-de-gestion-de-gabes", name: "Institut supérieur de gestion de Gabès", majors: [] },
+      { id: "institut-superieur-des-sciences-et-techn", name: "Institut supérieur des sciences et techniques des eaux de Gabès", majors: [] },
+      { id: "faculte-des-sciences-de-gabes", name: "Faculté des sciences de Gabès", majors: [] },
+      { id: "institut-superieur-des-sciences-infirmie", name: "Institut supérieur des sciences infirmières de Gabès", majors: [] },
+      { id: "institut-superieur-des-sciences-applique", name: "Institut supérieur des sciences appliquées et de technologie de Gabès", majors: [] },
+      { id: "institut-superieur-de-biologie-appliquee", name: "Institut supérieur de biologie appliquée de Médenine", majors: [] },
+      { id: "institut-superieur-des-systemes-industri", name: "Institut supérieur des systèmes industriels de Gabès", majors: [] },
+      { id: "institut-superieur-des-arts-et-metiers-d-2", name: "Institut supérieur des arts et métiers de Tataouine", majors: [] },
+    ],
+  },
+  {
+    id: "umon",
+    name: "Université de Monastir",
+    institutes: [
+      { id: "faculte-des-sciences-de-monastir", name: "Faculté des sciences de Monastir", majors: [] },
+      { id: "faculte-des-sciences-economiques-et-de-g", name: "Faculté des sciences économiques et de gestion de Mahdia", majors: [] },
+      { id: "institut-superieur-de-biotechnologie-de-", name: "Institut supérieur de biotechnologie de Monastir", majors: [] },
+      { id: "institut-des-etudes-appliquees-en-humani", name: "Institut des études appliquées en humanités de Mahdia", majors: [] },
+      { id: "institut-superieur-d-informatique-de-mah", name: "Institut supérieur d'informatique de Mahdia", majors: [] },
+      { id: "institut-superieur-des-sciences-applique", name: "Institut supérieur des sciences appliquées et technologie de Mahdia", majors: [] },
+      { id: "institut-superieur-des-langues-de-moknin", name: "Institut supérieur des langues de Moknine", majors: [] },
+      { id: "institut-superieur-d-informatique-et-de-", name: "Institut supérieur d'informatique et de mathématique de Monastir", majors: [] },
+      { id: "institut-superieur-de-la-mode-de-monasti", name: "Institut supérieur de la mode de Monastir", majors: [] },
+      { id: "ecole-superieure-des-sciences-et-techniq", name: "Ecole supérieure des sciences et techniques de la santé de Monastir", majors: [] },
+      { id: "institut-superieur-des-arts-et-metiers-d", name: "Institut supérieur des arts et métiers de Mahdia", majors: [] },
+    ],
+  },
+  {
     id: "uk",
     name: "Université de Kairouan",
     institutes: [
-      {
-        id: "isigk",
-        name: "ISIG Kairouan",
-        majors: [
+      { id: "institut-superieur-des-arts-et-metiers-d", name: "Institut supérieur des arts et métiers de Kairouan", majors: [] },
+      { id: "institut-superieur-des-etudes-juridiques", name: "Institut supérieur des études juridiques et politiques de Kairouan", majors: [] },
+      { id: "institut-des-etudes-appliquees-en-humani", name: "Institut des études appliquées en humanités de Sbeitla", majors: [] },
+      { id: "isigk", name: "Institut supérieur d'informatique et de gestion de Kairouan", majors: [
+
           {
             id: "se-l1",
             name: "Sciences Économiques — L1",
@@ -208,180 +542,29 @@ export const universities: UniversityDef[] = [
               },
             ],
           },
-        ],
-      },
+      ] },
+      { id: "institut-superieur-des-arts-et-metiers-d-2", name: "Institut supérieur des arts et métiers de Kasserine", majors: [] },
+      { id: "faculte-des-lettres-et-des-sciences-huma", name: "Faculté des lettres et des sciences humaines de Kairouan", majors: [] },
+      { id: "institut-superieur-des-sciences-applique", name: "Institut supérieur des sciences appliquées et technologie de Kairouan", majors: [] },
+      { id: "institut-superieur-des-mathematiques-app", name: "Institut supérieur des mathématiques appliquées et d'informatique de Kairouan", majors: [] },
+      { id: "faculte-des-sciences-et-techniques-de-si", name: "Faculté des sciences et techniques de Sidi Bouzid", majors: [] },
+      { id: "institut-superieur-des-sciences-applique-2", name: "Institut supérieur des sciences appliquées et technologies de Kasserine", majors: [] },
+      { id: "institut-superieur-des-arts-et-metiers-d-3", name: "Institut supérieur des arts et métiers de Sidi Bouzid", majors: [] },
     ],
   },
   {
-    id: "utm",
-    name: "Université de Tunis El Manar",
+    id: "ugaf",
+    name: "Université de Gafsa",
     institutes: [
-      {
-        id: "fst",
-        name: "FST — Faculté des Sciences de Tunis",
-        majors: [
-          {
-            id: "math-l1",
-            name: "Mathématiques — L1",
-            semesters: [
-              {
-                name: "Semestre 1",
-                ues: [
-                  {
-                    name: "UE1 — Analyse", coef: 4, credits: 8,
-                    modules: [
-                      { name: "Analyse 1", coef: 2, examTypes: FULL },
-                      { name: "Topologie", coef: 2, examTypes: FULL },
-                    ],
-                  },
-                  {
-                    name: "UE2 — Algèbre", coef: 4, credits: 8,
-                    modules: [
-                      { name: "Algèbre linéaire 1", coef: 2, examTypes: FULL },
-                      { name: "Arithmétique", coef: 2, examTypes: FULL },
-                    ],
-                  },
-                  {
-                    name: "UE3 — Physique", coef: 3, credits: 6,
-                    modules: [
-                      { name: "Mécanique", coef: 1.5, examTypes: FULL },
-                      { name: "Électricité", coef: 1.5, examTypes: FULL },
-                    ],
-                  },
-                  {
-                    name: "UE4 — Informatique", coef: 2, credits: 4,
-                    modules: [{ name: "Programmation C", coef: 2, examTypes: FULL }],
-                  },
-                  {
-                    name: "UE5 — Langues", coef: 2, credits: 4,
-                    modules: [
-                      { name: "Anglais", coef: 1, examTypes: FULL },
-                      { name: "Français", coef: 1, examTypes: FULL },
-                    ],
-                  },
-                ],
-              },
-              {
-                name: "Semestre 2",
-                ues: [
-                  {
-                    name: "UE1 — Analyse 2", coef: 4, credits: 8,
-                    modules: [
-                      { name: "Analyse 2", coef: 2, examTypes: FULL },
-                      { name: "Suites & séries", coef: 2, examTypes: FULL },
-                    ],
-                  },
-                  {
-                    name: "UE2 — Algèbre 2", coef: 4, credits: 8,
-                    modules: [
-                      { name: "Algèbre linéaire 2", coef: 2, examTypes: FULL },
-                      { name: "Géométrie", coef: 2, examTypes: FULL },
-                    ],
-                  },
-                  {
-                    name: "UE3 — Probabilités", coef: 3, credits: 6,
-                    modules: [{ name: "Probabilités", coef: 3, examTypes: FULL }],
-                  },
-                  {
-                    name: "UE4 — Statistiques", coef: 2, credits: 4,
-                    modules: [{ name: "Statistiques descriptives", coef: 2, examTypes: FULL }],
-                  },
-                  {
-                    name: "UE5 — Transversale", coef: 2, credits: 4,
-                    modules: [
-                      { name: "Anglais 2", coef: 1, examTypes: TRANS },
-                      { name: "Culture & entrepreneuriat", coef: 1, examTypes: TRANS },
-                    ],
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: "us",
-    name: "Université de Sfax",
-    institutes: [
-      {
-        id: "fseg",
-        name: "FSEG Sfax",
-        majors: [
-          {
-            id: "gestion-l1",
-            name: "Sciences de Gestion — L1",
-            semesters: [
-              {
-                name: "Semestre 1",
-                ues: [
-                  {
-                    name: "UE1 — Économie", coef: 4, credits: 8,
-                    modules: [
-                      { name: "Microéconomie", coef: 2, examTypes: FULL },
-                      { name: "Macroéconomie", coef: 2, examTypes: FULL },
-                    ],
-                  },
-                  {
-                    name: "UE2 — Comptabilité", coef: 4, credits: 8,
-                    modules: [{ name: "Comptabilité financière 1", coef: 4, examTypes: FULL }],
-                  },
-                  {
-                    name: "UE3 — Maths & Stats", coef: 3, credits: 6,
-                    modules: [
-                      { name: "Mathématiques", coef: 1.5, examTypes: FULL },
-                      { name: "Statistiques", coef: 1.5, examTypes: FULL },
-                    ],
-                  },
-                  {
-                    name: "UE4 — Droit", coef: 2, credits: 4,
-                    modules: [{ name: "Introduction au droit", coef: 2, examTypes: FULL }],
-                  },
-                  {
-                    name: "UE5 — Langues", coef: 2, credits: 4,
-                    modules: [
-                      { name: "Anglais", coef: 1, examTypes: FULL },
-                      { name: "Communication", coef: 1, examTypes: FULL },
-                    ],
-                  },
-                ],
-              },
-              {
-                name: "Semestre 2",
-                ues: [
-                  {
-                    name: "UE1 — Gestion", coef: 4, credits: 8,
-                    modules: [
-                      { name: "Introduction à la gestion", coef: 2, examTypes: FULL },
-                      { name: "Marketing fondamental", coef: 2, examTypes: FULL },
-                    ],
-                  },
-                  {
-                    name: "UE2 — Comptabilité 2", coef: 4, credits: 8,
-                    modules: [{ name: "Comptabilité financière 2", coef: 4, examTypes: FULL }],
-                  },
-                  {
-                    name: "UE3 — Maths financières", coef: 3, credits: 6,
-                    modules: [{ name: "Mathématiques financières", coef: 3, examTypes: FULL }],
-                  },
-                  {
-                    name: "UE4 — Informatique", coef: 2, credits: 4,
-                    modules: [{ name: "Bureautique & TIC", coef: 2, examTypes: FULL }],
-                  },
-                  {
-                    name: "UE5 — Transversale", coef: 2, credits: 4,
-                    modules: [
-                      { name: "Anglais des affaires", coef: 1, examTypes: TRANS },
-                      { name: "Techniques d'expression", coef: 1, examTypes: TRANS },
-                    ],
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      },
+      { id: "institut-superieur-des-arts-et-metiers-d", name: "Institut supérieur des arts et métiers de Gafsa", majors: [] },
+      { id: "institut-superieur-des-etudes-appliquees", name: "Institut supérieur des études appliquées en humanités de Tozeur", majors: [] },
+      { id: "faculte-des-sciences-de-gafsa", name: "Faculté des sciences de Gafsa", majors: [] },
+      { id: "institut-superieur-des-sciences-applique", name: "Institut supérieur des sciences appliquées et technologie de Gafsa", majors: [] },
+      { id: "institut-superieur-des-sciences-sociales", name: "Institut supérieur des sciences sociales et éducation de Gafsa", majors: [] },
+      { id: "institut-superieur-d-administration-des-", name: "Institut supérieur d'administration des entreprises de Gafsa", majors: [] },
+      { id: "institut-superieur-des-etudes-appliquees-2", name: "Institut supérieur des études appliquées en humanités de Gafsa", majors: [] },
+      { id: "institut-superieur-du-sport-et-de-l-educ", name: "Institut supérieur du sport et de l'éducation physique de Gafsa", majors: [] },
+      { id: "ecole-superieure-des-sciences-et-techniq", name: "Ecole supérieure des sciences et techniques de la santé à Gafsa", majors: [] },
     ],
   },
 ];
