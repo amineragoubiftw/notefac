@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { type UEDef, type ModuleGrades, ueAverage } from "@/lib/lmd-data";
+import { type UEDef, type ModuleGrades, ueAverage, rgFormula } from "@/lib/lmd-data";
 import { ModuleRow } from "./ModuleRow";
 
 interface UECardProps {
@@ -25,8 +25,13 @@ export function UECard({ ue, index, grades, onGradeChange, extraControl = false 
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 min-w-0">
           <h3 className="text-base font-bold text-foreground break-words">{ue.name}</h3>
           <span className="text-xs text-muted-foreground shrink-0">
-            Coef {ue.coef} · {ue.credits} crédits
+            {ue.rg ? "Coef UE" : "Coef"} {ue.coef}
+            {ue.credits > 0 && ` · ${ue.credits} crédits`}
+            {ue.rg && ` · Rg ${ue.rg}`}
           </span>
+          {ue.rg && (
+            <span className="w-full text-[11px] text-muted-foreground">{rgFormula(ue.rg)}</span>
+          )}
         </div>
         {avg !== null && (
           <div
@@ -46,6 +51,7 @@ export function UECard({ ue, index, grades, onGradeChange, extraControl = false 
             key={mod.name}
             name={mod.name}
             coef={mod.coef}
+            rg={mod.rg}
             examTypes={mod.examTypes ?? ["examen", "ds", "cc"]}
             grades={grades[mod.name] || {}}
             onChange={(field, value) => onGradeChange(mod.name, field, value)}

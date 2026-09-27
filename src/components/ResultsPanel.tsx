@@ -46,7 +46,7 @@ export function ResultsPanel({ ues, grades, maxCredits, extraControl = false }: 
         <p className="text-xs text-muted-foreground mt-1">/20</p>
       </div>
 
-      <div className="text-center mb-6">
+      {maxCredits > 0 && (<div className="text-center mb-6">
         <p className="text-xs uppercase tracking-widest text-muted-foreground mb-2">
           Crédits Validés
         </p>
@@ -62,7 +62,7 @@ export function ResultsPanel({ ues, grades, maxCredits, extraControl = false }: 
             transition={{ duration: 0.6, ease: "easeOut" }}
           />
         </div>
-      </div>
+      </div>)}
 
       <div className="space-y-2.5">
         <p className="text-xs uppercase tracking-widest text-muted-foreground">
@@ -78,7 +78,7 @@ export function ResultsPanel({ ues, grades, maxCredits, extraControl = false }: 
             >
               <span className="text-sm font-medium text-foreground truncate pr-2">
                 {ue.name}
-                <span className="text-xs text-muted-foreground ml-1.5">({ue.credits} cr)</span>
+                {ue.credits > 0 && <span className="text-xs text-muted-foreground ml-1.5">({ue.credits} cr)</span>}
               </span>
               <span
                 className={`text-sm font-bold tabular-nums shrink-0 ${
