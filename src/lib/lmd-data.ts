@@ -5,13 +5,19 @@ export interface ModuleDef {
   coef: number;
   credits?: number;
   examTypes?: ExamType[]; // default: ["examen","ds","cc"]
+  rg?: Rg; // ESSTHS regime: MX (CC10/DS20/EX70) or CC (CC10/DS45/EX45)
 }
+
+export type Rg = "MX" | "CC";
 
 export interface UEDef {
   name: string;
   coef: number;
   credits: number;
   modules: ModuleDef[];
+  rg?: Rg;
+  /** Mutually exclusive option group; only the selected UE of a group counts. */
+  optionGroup?: string;
 }
 
 export interface SemesterDef {
@@ -218,7 +224,149 @@ export const universities: UniversityDef[] = [
       { id: "institut-superieur-de-musique-de-sousse", name: "Institut supérieur de musique de Sousse", majors: [] },
       { id: "institut-superieur-du-transport-et-de-la", name: "Institut supérieur du transport et de la logistique de Sousse", majors: [] },
       { id: "faculte-des-sciences-economiques-et-de-g", name: "Faculté des sciences économiques et de gestion de Sousse", majors: [] },
-      { id: "ecole-superieure-des-sciences-et-de-la-t", name: "Ecole supérieure des sciences et de la technologie de Hammam Sousse", majors: [] },
+      { id: "ecole-superieure-des-sciences-et-de-la-t", name: "Ecole supérieure des sciences et de la technologie de Hammam Sousse", majors: [
+          {
+            id: "essths-l2-info",
+            name: "2ème année (Informatique)",
+            semesters: [
+              {
+                name: "Semestre 1",
+                ues: [
+                  {
+                    name: 'Bases de données et réseaux', coef: 2.5, credits: 0, rg: "MX",
+                    modules: [
+                      { name: 'Ingénierie des bases de données', coef: 1.5, examTypes: FULL, rg: "MX" },
+                      { name: 'Services de réseaux', coef: 1, examTypes: FULL, rg: "MX" },
+                    ],
+                  },
+                  {
+                    name: 'CPOO', coef: 3.5, credits: 0, rg: "MX",
+                    modules: [
+                      { name: "Conception des systèmes d'information", coef: 1.5, examTypes: FULL, rg: "MX" },
+                      { name: 'Programmation Java', coef: 2, examTypes: FULL, rg: "MX" },
+                    ],
+                  },
+                  {
+                    name: 'Probabilité', coef: 2, credits: 0, rg: "MX",
+                    modules: [
+                      { name: 'Probabilité et statistique', coef: 2, examTypes: FULL, rg: "MX" },
+                    ],
+                  },
+                  {
+                    name: 'Automates et optimisation', coef: 2, credits: 0, rg: "MX",
+                    modules: [
+                      { name: 'Graphes et optimisation', coef: 1, examTypes: FULL, rg: "MX" },
+                      { name: 'Théorie des langages des Automates', coef: 1, examTypes: FULL, rg: "MX" },
+                    ],
+                  },
+                  {
+                    name: 'Langue et culture', coef: 2, credits: 0, rg: "CC",
+                    modules: [
+                      { name: "Gestion d'entreprise", coef: 1, examTypes: FULL, rg: "CC" },
+                      { name: 'Anglais 3', coef: 1, examTypes: FULL, rg: "CC" },
+                    ],
+                  },
+                  {
+                    name: 'UE S3 LOT1', coef: 3, credits: 0, rg: "MX", optionGroup: "opt",
+                    modules: [
+                      { name: 'Web Design et Développement Dynamique', coef: 1.5, examTypes: FULL, rg: "MX" },
+                      { name: 'Python pour des Solutions IoT', coef: 1.5, examTypes: FULL, rg: "MX" },
+                    ],
+                  },
+                  {
+                    name: 'UE S3 LOT2', coef: 3, credits: 0, rg: "MX", optionGroup: "opt",
+                    modules: [
+                      { name: 'Web Design et Développement Dynamique', coef: 1.5, examTypes: FULL, rg: "MX" },
+                      { name: 'Systèmes embarqués pour IoT', coef: 1.5, examTypes: FULL, rg: "MX" },
+                    ],
+                  },
+                  {
+                    name: 'UEO', coef: 3, credits: 0, rg: "MX", optionGroup: "opt",
+                    modules: [
+                      { name: 'Introduction à la 3D pour les jeux Web', coef: 1.5, examTypes: FULL, rg: "MX" },
+                      { name: 'Programmation Python II', coef: 1.5, examTypes: FULL, rg: "MX" },
+                    ],
+                  },
+                  {
+                    name: 'UE optionnelle', coef: 3, credits: 0, rg: "MX", optionGroup: "opt",
+                    modules: [
+                      { name: 'Programmation Python II', coef: 1.5, examTypes: FULL, rg: "MX" },
+                      { name: 'Systèmes embarqués pour IoT', coef: 1.5, examTypes: FULL, rg: "MX" },
+                    ],
+                  },
+                ],
+              },
+              {
+                name: "Semestre 2",
+                ues: [
+                  {
+                    name: 'Compilation & tests', coef: 2.5, credits: 0, rg: "MX",
+                    modules: [
+                      { name: 'Tests de logiciels (certification ISTQB)', coef: 1, examTypes: FULL, rg: "MX" },
+                      { name: 'Techniques de compilation', coef: 1.5, examTypes: FULL, rg: "MX" },
+                    ],
+                  },
+                  {
+                    name: 'Indexation et Web', coef: 2.5, credits: 0, rg: "MX",
+                    modules: [
+                      { name: 'Technologies et programmation web', coef: 1.5, examTypes: FULL, rg: "MX" },
+                      { name: "Techniques d'indexation", coef: 1, examTypes: FULL, rg: "MX" },
+                    ],
+                  },
+                  {
+                    name: 'Intelligence artificielle', coef: 2, credits: 0, rg: "MX",
+                    modules: [
+                      { name: "Fondements de l'intelligence artificielle (programmation IA)", coef: 2, examTypes: FULL, rg: "MX" },
+                    ],
+                  },
+                  {
+                    name: 'Bases de données', coef: 2, credits: 0, rg: "MX",
+                    modules: [
+                      { name: 'Administration des bases de données', coef: 1, examTypes: FULL, rg: "MX" },
+                      { name: 'Entrepôts de données', coef: 1, examTypes: FULL, rg: "MX" },
+                    ],
+                  },
+                  {
+                    name: 'Langue et éthique', coef: 3, credits: 0, rg: "CC",
+                    modules: [
+                      { name: 'Projet fédéré (méthode Agile)', coef: 1, examTypes: FULL, rg: "CC" },
+                      { name: 'Anglais 3', coef: 1, examTypes: FULL, rg: "CC" },
+                      { name: 'Droit informatique, protection des données et éthique', coef: 1, examTypes: FULL, rg: "CC" },
+                    ],
+                  },
+                  {
+                    name: 'UEO', coef: 3, credits: 0, rg: "MX", optionGroup: "opt",
+                    modules: [
+                      { name: 'Programmation OO avancée', coef: 1.5, examTypes: FULL, rg: "MX" },
+                      { name: 'Présentation données avancées : XML', coef: 1.5, examTypes: FULL, rg: "MX" },
+                    ],
+                  },
+                  {
+                    name: 'UEO_AU24-25', coef: 3, credits: 0, rg: "MX", optionGroup: "opt",
+                    modules: [
+                      { name: 'Programmation OO avancée', coef: 1.5, examTypes: FULL, rg: "MX" },
+                      { name: 'Game design', coef: 1.5, examTypes: FULL, rg: "MX" },
+                    ],
+                  },
+                  {
+                    name: 'UE S2 LOT1', coef: 3, credits: 0, rg: "MX", optionGroup: "opt",
+                    modules: [
+                      { name: 'Développement Java Avancé', coef: 1.5, examTypes: FULL, rg: "MX" },
+                      { name: 'Présentation des données avancées : XML', coef: 1.5, examTypes: FULL, rg: "MX" },
+                    ],
+                  },
+                  {
+                    name: 'UE S2 LOT2', coef: 3, credits: 0, rg: "MX", optionGroup: "opt",
+                    modules: [
+                      { name: 'Développement Java Avancé', coef: 1.5, examTypes: FULL, rg: "MX" },
+                      { name: 'Game Design', coef: 1.5, examTypes: FULL, rg: "MX" },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ] },
       { id: "institut-superieur-de-gestion-de-sousse", name: "Institut supérieur de gestion de Sousse", majors: [] },
       { id: "institut-des-hautes-etudes-commerciales-", name: "Institut des hautes études commerciales de Sousse", majors: [] },
       { id: "institut-superieur-agronomique-de-chott-", name: "Institut supérieur agronomique de Chott-Mariem", majors: [] },
@@ -601,8 +749,15 @@ function weightsFor(examTypes: ExamType[]): Partial<Record<ExamType, number>> {
   return WEIGHTS_FULL;
 }
 
-export function moduleComputedNote(g: ModuleGrades, examTypes: ExamType[] = ["examen", "ds", "cc"]): number | null {
-  const W = weightsFor(examTypes);
+const WEIGHTS_RG_MX: Partial<Record<ExamType, number>> = { cc: 0.1, ds: 0.2, examen: 0.7 };
+const WEIGHTS_RG_CC: Partial<Record<ExamType, number>> = { cc: 0.1, ds: 0.45, examen: 0.45 };
+
+export function rgFormula(rg: Rg): string {
+  return rg === "CC" ? "CC×10% + DS×45% + Examen×45%" : "CC×10% + DS×20% + Examen×70%";
+}
+
+export function moduleComputedNote(g: ModuleGrades, examTypes: ExamType[] = ["examen", "ds", "cc"], rg?: Rg): number | null {
+  const W = rg === "CC" ? WEIGHTS_RG_CC : rg === "MX" ? WEIGHTS_RG_MX : weightsFor(examTypes);
   const parsed: Partial<Record<ExamType, number>> = {};
   let any = false;
   for (const t of examTypes) {
@@ -626,8 +781,9 @@ export function moduleFinalNote(
   g: ModuleGrades,
   examTypes: ExamType[] = ["examen", "ds", "cc"],
   forceMax: boolean = false,
+  rg?: Rg,
 ): number | null {
-  const note = moduleComputedNote(g, examTypes);
+  const note = moduleComputedNote(g, examTypes, rg);
   const ctrl = parseGrade(g.control);
   const ctrlClamped = isNaN(ctrl) ? null : clamp(ctrl);
   // When a control grade is entered (here or in a sibling module of the UE),
@@ -671,7 +827,7 @@ export function ueAverage(
   for (const m of ue.modules) {
     const g = grades[m.name];
     if (!g) continue;
-    const n = moduleComputedNote(g, m.examTypes ?? ["examen", "ds", "cc"]);
+    const n = moduleComputedNote(g, m.examTypes ?? ["examen", "ds", "cc"], m.rg);
     if (n === null) continue;
     pAny = true;
     pw += n * m.coef;
@@ -691,7 +847,7 @@ export function ueAverage(
   for (const m of ue.modules) {
     const g = grades[m.name];
     if (!g) continue;
-    const n = moduleFinalNote(g, m.examTypes ?? ["examen", "ds", "cc"], anyControl);
+    const n = moduleFinalNote(g, m.examTypes ?? ["examen", "ds", "cc"], anyControl, m.rg);
     if (n === null) continue;
     any = true;
     w += n * m.coef;
@@ -746,7 +902,8 @@ export function generalAverage(
     const a = semesterAverage(sem.ues, semGrades, extra);
     if (a === null) continue;
     any = true;
-    const credits = maxCreditsForSemester(sem.ues);
+    // Weight by credits; fall back to UE coefs when a curriculum has no credits.
+    const credits = maxCreditsForSemester(sem.ues) || sem.ues.reduce((t, u) => t + u.coef, 0);
     w += a * credits;
     c += credits;
   }
@@ -766,4 +923,15 @@ export function generalCredits(
     earned += totalCredits(sem.ues, semGrades, extra);
   }
   return { earned, max };
+}
+
+/** Keep non-optional UEs plus only the selected UE of each option group. */
+export function filterSelectedUEs(ues: UEDef[], selected: Record<string, string> = {}): UEDef[] {
+  const firstOf: Record<string, string> = {};
+  for (const u of ues) if (u.optionGroup && !(u.optionGroup in firstOf)) firstOf[u.optionGroup] = u.name;
+  return ues.filter((u) => !u.optionGroup || (selected[u.optionGroup] ?? firstOf[u.optionGroup]) === u.name);
+}
+
+export function applyOptionSelection(major: MajorDef, sel: Record<string, Record<string, string>> = {}): MajorDef {
+  return { ...major, semesters: major.semesters.map((s) => ({ ...s, ues: filterSelectedUEs(s.ues, sel[s.name]) })) };
 }
