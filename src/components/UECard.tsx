@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { type UEDef, type ModuleGrades, ueAverage, rgFormula } from "@/lib/lmd-data";
+import { type UEDef, type ModuleGrades, ueAverage } from "@/lib/lmd-data";
 import { ModuleRow } from "./ModuleRow";
 
 interface UECardProps {
@@ -27,12 +27,6 @@ export function UECard({ ue, index, grades, onGradeChange, extraControl = false 
           <span className="text-xs text-muted-foreground shrink-0">
             {ue.rg ? "Coef UE" : "Coef"} {ue.coef}
             {ue.credits > 0 && ` · ${ue.credits} crédits`}
-            {ue.rg && ` · Rg ${ue.rg}`}
-          </span>
-          {ue.rg && (
-            <span className="w-full text-[11px] text-muted-foreground">{rgFormula(ue.rg)}</span>
-          )}
-        </div>
         {avg !== null && (
           <div
             className={`shrink-0 px-3 py-1 rounded-full text-xs font-bold ${
