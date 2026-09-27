@@ -752,10 +752,6 @@ function weightsFor(examTypes: ExamType[]): Partial<Record<ExamType, number>> {
 const WEIGHTS_RG_MX: Partial<Record<ExamType, number>> = { cc: 0.1, ds: 0.2, examen: 0.7 };
 const WEIGHTS_RG_CC: Partial<Record<ExamType, number>> = { cc: 0.1, ds: 0.45, examen: 0.45 };
 
-export function rgFormula(rg: Rg): string {
-  return rg === "CC" ? "CC×10% + DS×45% + Examen×45%" : "CC×10% + DS×20% + Examen×70%";
-}
-
 export function moduleComputedNote(g: ModuleGrades, examTypes: ExamType[] = ["examen", "ds", "cc"], rg?: Rg): number | null {
   const W = rg === "CC" ? WEIGHTS_RG_CC : rg === "MX" ? WEIGHTS_RG_MX : weightsFor(examTypes);
   const parsed: Partial<Record<ExamType, number>> = {};
