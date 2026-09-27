@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trash2, Check, Sparkles } from "lucide-react";
-import { universities, type ModuleGrades, type MajorDef, generalAverage, generalCredits, hasAnyControl } from "@/lib/lmd-data";
+import { universities, type ModuleGrades, type MajorDef, generalAverage, generalCredits, hasAnyControl, applyOptionSelection } from "@/lib/lmd-data";
 import { SelectionBar } from "@/components/SelectionBar";
 import { SemesterToggle } from "@/components/SemesterToggle";
 import { UECard } from "@/components/UECard";
@@ -34,6 +34,9 @@ export const Route = createFileRoute("/")({
 
 const PROFILE_KEY = "lmd-calc:profile:v1";
 const GRADES_KEY = "lmd-calc:grades:v1";
+const OPTIONS_KEY = "lmd-calc:ue-options:v1";
+// majorId -> semesterName -> optionGroup -> selected UE name
+type AllOptions = Record<string, Record<string, Record<string, string>>>;
 
 interface Profile {
   universityId: string;
@@ -51,14 +54,29 @@ function Index() {
     majorId: "",
   });
   const [allGrades, setAllGrades, savedTick] = useLocalStorage<AllGrades>(GRADES_KEY, {});
+  const [allOptions, setAllOptions] = useLocalStorage<AllOptions>(OPTIONS_KEY, {});
   const [activeSemester, setActiveSemester] = useState(0);
   const [showSaved, setShowSaved] = useState(false);
 
-  const major = useMemo(() => {
+  const rawMajor = useMemo(() => {
     const u = universities.find((x) => x.id === profile.universityId);
     const i = u?.institutes.find((x) => x.id === profile.instituteId);
     return i?.majors.find((x) => x.id === profile.majorId);
   }, [profile]);
+  const majorOptions = (rawMajor && allOptions[rawMajor.id]) || {};
+  const major = useMemo(
+    () => (rawMajor ? applyOptionSelection(rawMajor, majorOptions) : undefined),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [rawMajor, JSON.stringify(majorOptions)],
+  );
+  const rawSemester = rawMajor?.semesters[activeSemester];
+  const optionGroups = useMemo(() => {
+    const groups: Record<string, string[]> = {};
+    for (const ue of rawSemester?.ues ?? []) {
+      if (ue.optionGroup) (groups[ue.optionGroup] ??= []).push(ue.name);
+    }
+    return groups;
+  }, [rawSemester]);
 
   const semester = major?.semesters[activeSemester];
   const majorGrades = (major && allGrades[major.id]) || {};
@@ -289,6 +307,43 @@ function Index() {
 
           <div className="max-w-7xl mx-auto px-4 pb-16 flex flex-col lg:flex-row gap-6">
             <div className="flex-1 space-y-4">
+              {rawSemester && Object.entries(optionGroups).map(([group, names]) => (
+                <div key={group} className="glass-card p-4">
+                  <p className="text-xs uppercase tracking-widest text-muted-foreground mb-2">
+                    UE optionnelle / LOT — choisissez celle de votre parcours
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {names.map((n) => {
+                      const selected = semester?.ues.some((u) => u.name === n && u.optionGroup === group);
+                      return (
+                        <button
+                          key={n}
+                          type="button"
+                          onClick={() =>
+                            setAllOptions((prev) => ({
+                              ...prev,
+                              [rawMajor!.id]: {
+                                ...(prev[rawMajor!.id] || {}),
+                                [rawSemester.name]: {
+                                  ...(prev[rawMajor!.id]?.[rawSemester.name] || {}),
+                                  [group]: n,
+                                },
+                              },
+                            }))
+                          }
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                            selected
+                              ? "bg-primary/20 border-primary text-foreground"
+                              : "bg-glass border-glass-border text-muted-foreground hover:text-foreground"
+                          }`}
+                        >
+                          {n}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
               <AnimatePresence mode="wait">
                 <motion.div
                   key={`${major.id}-${semester?.name}`}
