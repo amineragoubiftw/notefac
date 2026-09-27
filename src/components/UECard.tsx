@@ -27,6 +27,8 @@ export function UECard({ ue, index, grades, onGradeChange, extraControl = false 
           <span className="text-xs text-muted-foreground shrink-0">
             {ue.rg ? "Coef UE" : "Coef"} {ue.coef}
             {ue.credits > 0 && ` · ${ue.credits} crédits`}
+          </span>
+        </div>
         {avg !== null && (
           <div
             className={`shrink-0 px-3 py-1 rounded-full text-xs font-bold ${
