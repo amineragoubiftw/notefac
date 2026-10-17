@@ -28,6 +28,10 @@ export const Route = createFileRoute("/")({
     meta: [
       { title: "Calculateur LMD Tunisien — Moyennes & Crédits" },
       { name: "description", content: "Calculateur universel de moyennes et crédits pour le système LMD tunisien. Sélectionnez votre université, institut et parcours." },
+      { property: "og:title", content: "Calculateur LMD Tunisien — Moyennes & Crédits" },
+      { property: "og:description", content: "Calculez vos notes, moyennes et crédits selon votre parcours universitaire tunisien." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
 });
@@ -47,7 +51,7 @@ interface Profile {
 // grades scoped: majorId -> semesterName -> moduleName -> ModuleGrades
 type AllGrades = Record<string, Record<string, Record<string, ModuleGrades>>>;
 
-function Index() {
+export function Index() {
   const [profile, setProfile] = useLocalStorage<Profile>(PROFILE_KEY, {
     universityId: "",
     instituteId: "",

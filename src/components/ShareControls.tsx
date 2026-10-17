@@ -75,6 +75,7 @@ export function ShareControls({ major, yearGrades, onImport }: ShareControlsProp
     setLoading(true);
     setError(null);
     try {
+      if (!navigator.onLine) throw new Error("Internet is required to share your year. Your grades are saved locally.");
       const newCode = generateCode();
       const { error: dbErr } = await supabase.from("year_shares").insert({
         share_code: newCode,
@@ -86,7 +87,8 @@ export function ShareControls({ major, yearGrades, onImport }: ShareControlsProp
         console.error("[ShareYear] DB error", dbErr);
         throw new Error(dbErr.message || "Database error while saving share");
       }
-      const url = `${window.location.origin}/?import=${newCode}`;
+      const origin = import.meta.env.VITE_DESKTOP === "true" ? "https://notefac.lovable.app" : window.location.origin;
+      const url = `${origin}/?import=${newCode}`;
       setCode(newCode);
       setShareUrl(url);
       setQrUrl(await QRCode.toDataURL(url, { margin: 1, width: 220 }));
@@ -117,6 +119,7 @@ export function ShareControls({ major, yearGrades, onImport }: ShareControlsProp
     setError(null);
     setImportedInfo(null);
     try {
+      if (!navigator.onLine) throw new Error("Internet is required to import a shared year. Your saved grades are still available.");
       const { data, error: dbErr } = await supabase
         .from("year_shares")
         .select("payload, major_id, major_name")

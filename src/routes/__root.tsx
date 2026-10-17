@@ -83,8 +83,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:site", content: "@Lovable" },
       { name: "twitter:title", content: "Calculate note" },
       { name: "twitter:description", content: "University Grade & Credit Calculator for Tunisian universities." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f87e9673-cb77-4d2e-8d34-d41a703b38fe/id-preview-6a92ff7b--27c3490f-7d99-4b40-a49d-e4a9a82f7c60.lovable.app-1778176826899.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f87e9673-cb77-4d2e-8d34-d41a703b38fe/id-preview-6a92ff7b--27c3490f-7d99-4b40-a49d-e4a9a82f7c60.lovable.app-1778176826899.png" },
     ],
     links: [
       {
