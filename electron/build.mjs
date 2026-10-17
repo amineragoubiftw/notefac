@@ -1,5 +1,5 @@
 import { build } from 'vite';
-import packager from '@electron/packager';
+import { packager } from '@electron/packager';
 import { cp, mkdir, writeFile, rm } from 'node:fs/promises';
 import path from 'node:path';
 
