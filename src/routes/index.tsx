@@ -8,6 +8,7 @@ import { SemesterToggle } from "@/components/SemesterToggle";
 import { UECard } from "@/components/UECard";
 import { ResultsPanel } from "@/components/ResultsPanel";
 import { VideoBackground } from "@/components/VideoBackground";
+import { DesktopInstallNotice } from "@/components/DesktopInstallNotice";
 import { ShareControls, mergeYearGrades } from "@/components/ShareControls";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import {
@@ -220,6 +221,7 @@ export function Index() {
   return (
     <div className="min-h-screen mesh-gradient relative">
       <VideoBackground />
+      <DesktopInstallNotice />
       <header className="pt-10 pb-4 text-center">
         <motion.h1
           initial={{ opacity: 0, y: -20 }}
