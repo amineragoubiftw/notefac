@@ -1,3 +1,4 @@
+/// <reference types="bun" />
 import { describe, expect, test } from "bun:test";
 import { moduleComputedNote, semesterAverage, totalCredits, ueAverage } from "./lmd-data";
 import { semesterData, validWeights, type CustomModule } from "./custom-workspace";

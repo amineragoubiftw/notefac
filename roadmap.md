@@ -5,6 +5,6 @@
 - [x] Apply required package security update and check app health.
 
 # Custom mode
-- [ ] Add an independent saved workspace with semester, UE, and module editors.
-- [ ] Reuse calculator rules with configurable assessment weights.
-- [ ] Connect website and desktop navigation; verify editing, calculations, and persistence.
+- [x] Add an independent saved workspace with semester, UE, and module editors.
+- [x] Reuse calculator rules with configurable assessment weights.
+- [x] Connect website and desktop navigation; verify editing, calculations, and persistence in the live website.
