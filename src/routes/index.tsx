@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trash2, Check, Sparkles } from "lucide-react";
@@ -240,6 +241,7 @@ export function Index() {
         </motion.p>
 
         <div className="max-w-7xl mx-auto px-4 mt-5 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+          <Button asChild variant="outline" size="sm" className="glass-card"><Link to="/custom">Mode personnalisé</Link></Button>
           <AnimatePresence>
             {showSaved && (
               <motion.div
