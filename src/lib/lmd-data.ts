@@ -6,6 +6,7 @@ export interface ModuleDef {
   credits?: number;
   examTypes?: ExamType[]; // default: ["examen","ds","cc"]
   rg?: Rg; // ESSTHS regime: MX (CC10/DS20/EX70) or CC (CC10/DS45/EX45)
+  weights?: Partial<Record<ExamType, number>>;
 }
 
 export type Rg = "MX" | "CC";
@@ -752,8 +753,9 @@ function weightsFor(examTypes: ExamType[]): Partial<Record<ExamType, number>> {
 const WEIGHTS_RG_MX: Partial<Record<ExamType, number>> = { cc: 0.1, ds: 0.2, examen: 0.7 };
 const WEIGHTS_RG_CC: Partial<Record<ExamType, number>> = { cc: 0.1, ds: 0.45, examen: 0.45 };
 
-export function moduleComputedNote(g: ModuleGrades, examTypes: ExamType[] = ["examen", "ds", "cc"], rg?: Rg): number | null {
-  const W = rg === "CC" ? WEIGHTS_RG_CC : rg === "MX" ? WEIGHTS_RG_MX : weightsFor(examTypes);
+export function moduleComputedNote(g: ModuleGrades, examTypes: ExamType[] = ["examen", "ds", "cc"], rg?: Rg, weights?: Partial<Record<ExamType, number>>): number | null {
+  const W = weights ?? (rg === "CC" ? WEIGHTS_RG_CC : rg === "MX" ? WEIGHTS_RG_MX : weightsFor(examTypes));
+  if (weights && examTypes.some((t) => !Number.isFinite(W[t] ?? 0) || (W[t] ?? 0) < 0)) return null;
   const parsed: Partial<Record<ExamType, number>> = {};
   let any = false;
   for (const t of examTypes) {
@@ -778,8 +780,9 @@ export function moduleFinalNote(
   examTypes: ExamType[] = ["examen", "ds", "cc"],
   forceMax: boolean = false,
   rg?: Rg,
+  weights?: Partial<Record<ExamType, number>>,
 ): number | null {
-  const note = moduleComputedNote(g, examTypes, rg);
+  const note = moduleComputedNote(g, examTypes, rg, weights);
   const ctrl = parseGrade(g.control);
   const ctrlClamped = isNaN(ctrl) ? null : clamp(ctrl);
   // When a control grade is entered (here or in a sibling module of the UE),
@@ -823,7 +826,7 @@ export function ueAverage(
   for (const m of ue.modules) {
     const g = grades[m.name];
     if (!g) continue;
-    const n = moduleComputedNote(g, m.examTypes ?? ["examen", "ds", "cc"], m.rg);
+    const n = moduleComputedNote(g, m.examTypes ?? ["examen", "ds", "cc"], m.rg, m.weights);
     if (n === null) continue;
     pAny = true;
     pw += n * m.coef;
@@ -843,7 +846,7 @@ export function ueAverage(
   for (const m of ue.modules) {
     const g = grades[m.name];
     if (!g) continue;
-    const n = moduleFinalNote(g, m.examTypes ?? ["examen", "ds", "cc"], anyControl, m.rg);
+    const n = moduleFinalNote(g, m.examTypes ?? ["examen", "ds", "cc"], anyControl, m.rg, m.weights);
     if (n === null) continue;
     any = true;
     w += n * m.coef;
