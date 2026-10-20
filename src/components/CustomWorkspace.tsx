@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowLeft, Check, Layers3, Plus, SlidersHorizontal, Trash2 } from "lucide-react";
+import { ArrowLeft, Check, Layers3, Plus, Save, SlidersHorizontal, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { VideoBackground } from "@/components/VideoBackground";
-import { assessments, newModule, newUE, semesterData, validWeights, type CustomWorkspace as Workspace, type CustomModule } from "@/lib/custom-workspace";
-import { clamp, moduleComputedNote, round2, semesterAverage, totalCredits, ueAverage } from "@/lib/lmd-data";
+import { assessments, newModule, newUE, selectUniversity, semesterData, validWeights, type CustomWorkspace as Workspace, type CustomModule } from "@/lib/custom-workspace";
+import { clamp, moduleComputedNote, round2, semesterAverage, totalCredits, ueAverage, universities } from "@/lib/lmd-data";
 
 const STORAGE_KEY = "notefac:custom-workspace:v1";
 const labels = { examen: "Examen", ds: "DS", cc: "CC" };
@@ -25,6 +26,7 @@ export function CustomWorkspace() {
   const [workspace, setWorkspace] = useState<Workspace>({ semesters: [] });
   const [loaded, setLoaded] = useState(false);
   const [storageError, setStorageError] = useState("");
+  const [saveConfirmed, setSaveConfirmed] = useState(false);
   const [selected, setSelected] = useState("");
   const [pendingDelete, setPendingDelete] = useState<{ title: string; action: () => void } | null>(null);
   useEffect(() => {
@@ -40,9 +42,19 @@ export function CustomWorkspace() {
   }, []);
   useEffect(() => {
     if (!loaded) return;
+    setSaveConfirmed(false);
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(workspace)); setStorageError(""); }
     catch { setStorageError("Enregistrement impossible sur cet appareil. Vos modifications ne sont pas sauvegardées."); }
   }, [workspace, loaded]);
+
+  function saveChanges() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(workspace));
+      setStorageError("");
+      setSaveConfirmed(true);
+    } catch { setStorageError("Enregistrement impossible sur cet appareil. Vos modifications ne sont pas sauvegardées."); }
+  }
+  const university = universities.find((item) => item.id === workspace.universityId);
 
   const semester = workspace.semesters.find((item) => item.id === selected) ?? workspace.semesters[0];
   const data = useMemo(() => semester ? semesterData(semester) : null, [semester]);
@@ -52,14 +64,14 @@ export function CustomWorkspace() {
   const credits = semester?.ues.reduce((sum, ue) => sum + ue.credits, 0) ?? 0;
   function updateSemester(transform: (current: NonNullable<typeof semester>) => NonNullable<typeof semester>) {
     if (!semester) return;
-    setWorkspace((current) => ({ semesters: current.semesters.map((item) => item.id === semester.id ? transform(item) : item) }));
+    setWorkspace((current) => ({ ...current, semesters: current.semesters.map((item) => item.id === semester.id ? transform(item) : item) }));
   }
   function updateModule(ueId: string, moduleId: string, patch: Partial<CustomModule>) {
     updateSemester((current) => ({ ...current, ues: current.ues.map((ue) => ue.id === ueId ? { ...ue, modules: ue.modules.map((module) => module.id === moduleId ? { ...module, ...patch } : module) } : ue) }));
   }
   function addSemester() {
     const id = crypto.randomUUID();
-    setWorkspace((current) => ({ semesters: [...current.semesters, { id, name: `Semestre ${current.semesters.length + 1}`, ues: [] }] }));
+    setWorkspace((current) => ({ ...current, semesters: [...current.semesters, { id, name: `Semestre ${current.semesters.length + 1}`, ues: [] }] }));
     setSelected(id);
   }
 
@@ -71,8 +83,27 @@ export function CustomWorkspace() {
           <Button asChild variant="ghost" size="sm" className="mb-3"><Link to="/"><ArrowLeft />Calculateur principal</Link></Button>
           <h1 className="flex items-center gap-3 text-3xl font-extrabold"><SlidersHorizontal className="size-7 text-primary" />Mode personnalisé</h1>
         </div>
-        <span role="status" className={`flex items-center gap-2 text-xs ${storageError ? "text-danger" : "text-muted-foreground"}`}><Check className="size-4" />{storageError || (loaded ? "Enregistré sur cet appareil" : "Chargement…")}</span>
+        <div className="flex flex-wrap items-center gap-3">
+          <span role="status" className={`flex items-center gap-2 text-xs ${storageError ? "text-danger" : "text-muted-foreground"}`}><Check className="size-4" />{storageError || (saveConfirmed ? "Modifications enregistrées" : loaded ? "Enregistré sur cet appareil" : "Chargement…")}</span>
+          <Button onClick={saveChanges} disabled={!loaded}><Save />Enregistrer</Button>
+        </div>
       </header>
+      <div className="mb-6 grid grid-cols-1 gap-4 border-b border-glass-border pb-6 sm:grid-cols-2">
+        <div className="min-w-0">
+          <label htmlFor="custom-university" className="mb-2 block text-xs text-muted-foreground">Université</label>
+          <Select value={workspace.universityId || ""} onValueChange={(value) => setWorkspace((current) => selectUniversity(current, value))} disabled={!loaded}>
+            <SelectTrigger id="custom-university" className="glass-input"><SelectValue placeholder="Sélectionner une université" /></SelectTrigger>
+            <SelectContent>{universities.map((item) => <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+        <div className="min-w-0">
+          <label htmlFor="custom-institute" className="mb-2 block text-xs text-muted-foreground">Établissement</label>
+          <Select value={workspace.instituteId || ""} onValueChange={(value) => setWorkspace((current) => ({ ...current, instituteId: value }))} disabled={!loaded || !university}>
+            <SelectTrigger id="custom-institute" className="glass-input"><SelectValue placeholder={university ? "Sélectionner un établissement" : "Choisir d’abord l’université"} /></SelectTrigger>
+            <SelectContent>{university?.institutes.map((item) => <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+      </div>
       <nav aria-label="Semestres personnalisés" className="mb-6 flex flex-wrap gap-2">
         {workspace.semesters.map((item) => <Button key={item.id} variant={semester?.id === item.id ? "default" : "outline"} onClick={() => setSelected(item.id)} aria-pressed={semester?.id === item.id} className="max-w-full whitespace-normal break-words">{item.name || "Sans nom"}</Button>)}
         <Button variant="outline" onClick={addSemester} disabled={!loaded}><Plus />Ajouter un semestre</Button>
@@ -85,7 +116,7 @@ export function CustomWorkspace() {
         <div className="mb-6 flex flex-wrap items-end gap-3 border-b border-glass-border pb-5">
           <label className="flex min-w-0 flex-1 flex-col gap-1 text-xs text-muted-foreground">Nom du semestre<input aria-label="Nom du semestre" className="glass-input w-full" value={semester.name} onChange={(event) => updateSemester((current) => ({ ...current, name: event.target.value }))} /></label>
           <Button variant="outline" onClick={() => updateSemester((current) => ({ ...current, ues: [...current.ues, newUE()] }))}><Plus />Ajouter une UE</Button>
-          <Button variant="ghost" size="icon" title="Supprimer le semestre" aria-label="Supprimer le semestre" onClick={() => setPendingDelete({ title: semester.name, action: () => setWorkspace((current) => ({ semesters: current.semesters.filter((item) => item.id !== semester.id) })) })}><Trash2 className="text-danger" /></Button>
+          <Button variant="ghost" size="icon" title="Supprimer le semestre" aria-label="Supprimer le semestre" onClick={() => setPendingDelete({ title: semester.name, action: () => setWorkspace((current) => ({ ...current, semesters: current.semesters.filter((item) => item.id !== semester.id) })) })}><Trash2 className="text-danger" /></Button>
         </div>
         <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
           <div className="min-w-0 space-y-8">

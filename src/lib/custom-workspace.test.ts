@@ -1,10 +1,17 @@
 /// <reference types="bun" />
 import { describe, expect, test } from "bun:test";
 import { moduleComputedNote, semesterAverage, totalCredits, ueAverage } from "./lmd-data";
-import { semesterData, validWeights, type CustomModule } from "./custom-workspace";
+import { selectUniversity, semesterData, validWeights, type CustomModule } from "./custom-workspace";
 
 const module: CustomModule = { id: "m1", name: "A", coef: 1, credits: 99, rg: "My rule", weights: { examen: 50, ds: 30, cc: 20 }, grades: { examen: "16", ds: "10", cc: "5" } };
 describe("custom calculator rules", () => {
+  test("changing university clears establishment without losing semesters", () => {
+    const semesters = [{ id: "s", name: "S", ues: [] }];
+    const workspace = selectUniversity({ universityId: "old", instituteId: "old-institute", semesters }, "new");
+    expect(workspace.universityId).toBe("new");
+    expect(workspace.instituteId).toBe("");
+    expect(workspace.semesters).toEqual(semesters);
+  });
   test("freely chosen assessment weights calculate the module grade", () => {
     expect(moduleComputedNote(module.grades, ["examen", "ds", "cc"], undefined, module.weights)).toBe(12);
   });
