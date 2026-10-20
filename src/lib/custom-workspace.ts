@@ -13,7 +13,11 @@ export interface CustomModule {
 }
 export interface CustomUE { id: string; name: string; coef: number; credits: number; modules: CustomModule[] }
 export interface CustomSemester { id: string; name: string; ues: CustomUE[] }
-export interface CustomWorkspace { semesters: CustomSemester[] }
+export interface CustomWorkspace { semesters: CustomSemester[]; universityId?: string; instituteId?: string }
+
+export function selectUniversity(workspace: CustomWorkspace, universityId: string): CustomWorkspace {
+  return { ...workspace, universityId, instituteId: "" };
+}
 
 export function newModule(): CustomModule {
   return { id: crypto.randomUUID(), name: "Nouveau module", coef: 1, credits: 0, rg: "MX", weights: { examen: 70, ds: 20, cc: 10 }, grades: {} };
