@@ -13,7 +13,7 @@ export interface CustomModule {
 }
 export interface CustomUE { id: string; name: string; coef: number; credits: number; modules: CustomModule[] }
 export interface CustomSemester { id: string; name: string; ues: CustomUE[] }
-export interface CustomWorkspace { semesters: CustomSemester[]; universityId?: string; instituteId?: string }
+export interface CustomWorkspace { semesters: CustomSemester[]; universityId?: string; instituteId?: string; parcoursName?: string }
 
 export function selectUniversity(workspace: CustomWorkspace, universityId: string): CustomWorkspace {
   return { ...workspace, universityId, instituteId: "" };

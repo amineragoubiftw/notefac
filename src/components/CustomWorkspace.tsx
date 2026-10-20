@@ -88,7 +88,7 @@ export function CustomWorkspace() {
           <Button onClick={saveChanges} disabled={!loaded}><Save />Enregistrer</Button>
         </div>
       </header>
-      <div className="mb-6 grid grid-cols-1 gap-4 border-b border-glass-border pb-6 sm:grid-cols-2">
+      <div className="mb-6 grid grid-cols-1 gap-4 border-b border-glass-border pb-6 sm:grid-cols-2 lg:grid-cols-3">
         <div className="min-w-0">
           <label htmlFor="custom-university" className="mb-2 block text-xs text-muted-foreground">Université</label>
           <Select value={workspace.universityId || ""} onValueChange={(value) => setWorkspace((current) => selectUniversity(current, value))} disabled={!loaded}>
@@ -102,6 +102,10 @@ export function CustomWorkspace() {
             <SelectTrigger id="custom-institute" className="glass-input"><SelectValue placeholder={university ? "Sélectionner un établissement" : "Choisir d’abord l’université"} /></SelectTrigger>
             <SelectContent>{university?.institutes.map((item) => <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}</SelectContent>
           </Select>
+        </div>
+        <div className="min-w-0">
+          <label htmlFor="custom-parcours" className="mb-2 block text-xs text-muted-foreground">Parcours</label>
+          <input id="custom-parcours" className="glass-input w-full" placeholder="Nom de votre parcours" value={workspace.parcoursName ?? ""} disabled={!loaded} onChange={(event) => setWorkspace((current) => ({ ...current, parcoursName: event.target.value }))} />
         </div>
       </div>
       <nav aria-label="Semestres personnalisés" className="mb-6 flex flex-wrap gap-2">
