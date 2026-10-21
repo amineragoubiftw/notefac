@@ -1,5 +1,5 @@
 import { GraduationCap, Building2, BookOpen } from "lucide-react";
-import { universities } from "@/lib/lmd-data";
+import { useCurriculum } from "@/lib/curriculum";
 
 interface SelectionBarProps {
   universityId: string;
@@ -12,6 +12,7 @@ const selectCls =
   "glass-input w-full appearance-none cursor-pointer pr-8 [&>option]:bg-card [&>option]:text-foreground";
 
 export function SelectionBar({ universityId, instituteId, majorId, onChange }: SelectionBarProps) {
+  const universities = useCurriculum();
   const uni = universities.find((u) => u.id === universityId);
   const inst = uni?.institutes.find((i) => i.id === instituteId);
 
