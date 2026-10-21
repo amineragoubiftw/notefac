@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowLeft, Check, Layers3, Plus, Save, SlidersHorizontal, Trash2 } from "lucide-react";
+import { ArrowLeft, Check, Layers3, Plus, Save, Send, SlidersHorizontal, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { submitProposal, toProposalSemesters } from "@/lib/curriculum";
 import { VideoBackground } from "@/components/VideoBackground";
 import { assessments, newModule, newUE, selectUniversity, semesterData, validWeights, type CustomWorkspace as Workspace, type CustomModule } from "@/lib/custom-workspace";
 import { clamp, moduleComputedNote, round2, semesterAverage, totalCredits, ueAverage, universities } from "@/lib/lmd-data";
@@ -54,6 +55,23 @@ export function CustomWorkspace() {
       setSaveConfirmed(true);
     } catch { setStorageError("Enregistrement impossible sur cet appareil. Vos modifications ne sont pas sauvegardées."); }
   }
+  const [proposalState, setProposalState] = useState<{ busy: boolean; message: string; error: boolean }>({ busy: false, message: "", error: false });
+  async function propose() {
+    const semesters = workspace.semesters.filter((s) => s.ues.some((ue) => ue.modules.length > 0));
+    if (!workspace.universityId || !workspace.instituteId || !workspace.parcoursName?.trim()) return setProposalState({ busy: false, error: true, message: "Choisissez l’université, l’établissement et écrivez le parcours avant de proposer." });
+    if (semesters.length === 0) return setProposalState({ busy: false, error: true, message: "Ajoutez au moins un module avant de proposer." });
+    if (semesters.some((s) => s.ues.some((ue) => ue.coef <= 0 || ue.modules.some((m) => !validWeights(m) || m.coef <= 0)))) return setProposalState({ busy: false, error: true, message: "Corrigez les coefficients et les poids (total 100 %) avant de proposer." });
+    if (typeof navigator !== "undefined" && !navigator.onLine) return setProposalState({ busy: false, error: true, message: "Connexion Internet requise pour proposer." });
+    saveChanges();
+    setProposalState({ busy: true, error: false, message: "Envoi…" });
+    try {
+      await submitProposal({ university_id: workspace.universityId, institute_id: workspace.instituteId, major_name: workspace.parcoursName.trim(), semesters: toProposalSemesters(semesters) });
+      setProposalState({ busy: false, error: false, message: "Proposition envoyée ✓ Elle apparaîtra pour tous les visiteurs après validation." });
+    } catch (error) {
+      console.error("[proposal] submit failed", error);
+      setProposalState({ busy: false, error: true, message: "Envoi impossible. Réessayez dans un instant." });
+    }
+  }
   const university = universities.find((item) => item.id === workspace.universityId);
 
   const semester = workspace.semesters.find((item) => item.id === selected) ?? workspace.semesters[0];
@@ -85,8 +103,10 @@ export function CustomWorkspace() {
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <span role="status" className={`flex items-center gap-2 text-xs ${storageError ? "text-danger" : "text-muted-foreground"}`}><Check className="size-4" />{storageError || (saveConfirmed ? "Modifications enregistrées" : loaded ? "Enregistré sur cet appareil" : "Chargement…")}</span>
-          <Button onClick={saveChanges} disabled={!loaded}><Save />Enregistrer</Button>
+          <Button onClick={saveChanges} disabled={!loaded}>{saveConfirmed ? <Check /> : <Save />}{saveConfirmed ? "Enregistré" : "Enregistrer"}</Button>
+          <Button variant="outline" onClick={propose} disabled={!loaded || proposalState.busy}><Send />Proposer au programme officiel</Button>
         </div>
+        {proposalState.message && <p role="status" className={`w-full text-sm ${proposalState.error ? "text-danger" : "text-success"}`}>{proposalState.message}</p>}
       </header>
       <div className="mb-6 grid grid-cols-1 gap-4 border-b border-glass-border pb-6 sm:grid-cols-2 lg:grid-cols-3">
         <div className="min-w-0">

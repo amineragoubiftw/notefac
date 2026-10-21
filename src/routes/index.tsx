@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trash2, Check, Sparkles } from "lucide-react";
-import { universities, type ModuleGrades, type MajorDef, generalAverage, generalCredits, hasAnyControl, applyOptionSelection } from "@/lib/lmd-data";
+import { type ModuleGrades, type MajorDef, generalAverage, generalCredits, hasAnyControl, applyOptionSelection } from "@/lib/lmd-data";
 import { SelectionBar } from "@/components/SelectionBar";
 import { SemesterToggle } from "@/components/SemesterToggle";
 import { UECard } from "@/components/UECard";
@@ -10,6 +10,7 @@ import { ResultsPanel } from "@/components/ResultsPanel";
 import { VideoBackground } from "@/components/VideoBackground";
 import { DesktopInstallNotice } from "@/components/DesktopInstallNotice";
 import { ShareControls, mergeYearGrades } from "@/components/ShareControls";
+import { useCurriculum } from "@/lib/curriculum";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import {
   AlertDialog,
@@ -53,6 +54,7 @@ interface Profile {
 type AllGrades = Record<string, Record<string, Record<string, ModuleGrades>>>;
 
 export function Index() {
+  const universities = useCurriculum();
   const [profile, setProfile] = useLocalStorage<Profile>(PROFILE_KEY, {
     universityId: "",
     instituteId: "",
@@ -67,7 +69,7 @@ export function Index() {
     const u = universities.find((x) => x.id === profile.universityId);
     const i = u?.institutes.find((x) => x.id === profile.instituteId);
     return i?.majors.find((x) => x.id === profile.majorId);
-  }, [profile]);
+  }, [profile, universities]);
   const majorOptions = (rawMajor && allOptions[rawMajor.id]) || {};
   const major = useMemo(
     () => (rawMajor ? applyOptionSelection(rawMajor, majorOptions) : undefined),

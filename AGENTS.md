@@ -3,4 +3,4 @@
 - Run Electron with isolated, sandboxed renderers and no Node integration; store local grades in its persistent application profile and keep cloud sharing online-only.
 - Keep the desktop download notice in a browser-only presentation component, suppressed in desktop builds, so installed users are not prompted to install again.
 - Keep Custom Mode in an independent local workspace with stable IDs for grades, and route it in both web and desktop clients; renaming entries must not lose grades or alter official curricula.
-- Pass optional per-module weights through the existing grading helpers so custom and official calculators share UE weighting, semester weighting, and credit validation semantics.
+- Pass optional per-module weights through the existing grading helpers so custom and official calculators share UE weighting, semester weighting, and credit validation semantics.- Community curriculum additions are stored as moderated proposals and merged into the static official catalog at runtime (useCurriculum); approved additions only append and never overwrite official modules, so the bundled data stays the source of truth and works offline via cache.
