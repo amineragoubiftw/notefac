@@ -27,10 +27,11 @@ test("web updates refresh programs without altering saved grades", async () => {
   values.set("lmd-calc:grades:v1", '{"saved":"14"}');
   const catalog = structuredClone(universities);
   catalog[0].name = "Updated university";
-  spyOn(globalThis, "fetch").mockImplementation(async (url) => {
+  const fakeFetch = Object.assign(async (url: RequestInfo | URL) => {
     expect(url).toBe(CATALOG_URL);
     return Response.json(catalog);
-  });
+  }, { preconnect: globalThis.fetch.preconnect });
+  spyOn(globalThis, "fetch").mockImplementation(fakeFetch);
   await refreshDesktopCatalog();
   expect(readDesktopCatalog()[0].name).toBe("Updated university");
   expect(values.get("lmd-calc:grades:v1")).toBe('{"saved":"14"}');
