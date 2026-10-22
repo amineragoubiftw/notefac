@@ -31,7 +31,7 @@ export function DesktopInstallNotice() {
               <Download aria-hidden="true" /> Télécharger pour Windows
             </a>
           </Button>
-          <p className="mt-4 text-sm text-muted-foreground">Windows uniquement · 222 MB</p>
+          <p className="mt-4 text-sm text-muted-foreground">Windows uniquement · 132 MB</p>
           <DialogClose asChild>
             <Button
           variant="ghost"
