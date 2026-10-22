@@ -1,4 +1,6 @@
 # Desktop app
+- [ ] Refresh web curriculum online and retain it offline without Custom/Admin pages.
+- [ ] Test offline persistence and online refresh, then deliver the updated Windows ZIP.
 - [x] Prepare Windows desktop launcher and standalone client build.
 - [x] Bundle background for offline use and retain local grades.
 - [x] Verify local calculation/persistence and package Windows download.

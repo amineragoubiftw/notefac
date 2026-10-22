@@ -8,6 +8,14 @@ This is a portable desktop application, not an installation wizard.
 Your grades, Control values, selections, and option choices are stored locally
 in your Windows user profile and restored when you reopen the application.
 Calculation and the background work without internet. Share My Year and
+The app checks for program updates on opening, reconnecting, and every minute
+while online. Approved community additions are downloaded from the web data;
+official catalog changes are downloaded after the website is published.
+The last downloaded programs remain available offline. Your personal grades
+stay on your computer and are not uploaded by program updates.
+Custom Mode and Admin pages are not included in this desktop application.
+
+Share My Year and
 Import Year need an internet connection. Share links open the public website;
 use Import Year with the code inside the desktop app.
 
