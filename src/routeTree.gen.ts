@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as CustomRouteImport } from './routes/custom'
+import { Route as ApiPublicCurriculumRouteImport } from './routes/api/public/curriculum'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,35 +29,44 @@ const CustomRoute = CustomRouteImport.update({
   path: '/custom',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCurriculumRoute = ApiPublicCurriculumRouteImport.update({
+  id: '/api/public/curriculum',
+  path: '/api/public/curriculum',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/custom': typeof CustomRoute
+  '/api/public/curriculum': typeof ApiPublicCurriculumRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/custom': typeof CustomRoute
+  '/api/public/curriculum': typeof ApiPublicCurriculumRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/custom': typeof CustomRoute
+  '/api/public/curriculum': typeof ApiPublicCurriculumRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/custom'
+  fullPaths: '/' | '/admin' | '/custom' | '/api/public/curriculum'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/custom'
-  id: '__root__' | '/' | '/admin' | '/custom'
+  to: '/' | '/admin' | '/custom' | '/api/public/curriculum'
+  id: '__root__' | '/' | '/admin' | '/custom' | '/api/public/curriculum'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   CustomRoute: typeof CustomRoute
+  ApiPublicCurriculumRoute: typeof ApiPublicCurriculumRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +92,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CustomRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/curriculum': {
+      id: '/api/public/curriculum'
+      path: '/api/public/curriculum'
+      fullPath: '/api/public/curriculum'
+      preLoaderRoute: typeof ApiPublicCurriculumRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   CustomRoute: CustomRoute,
+  ApiPublicCurriculumRoute: ApiPublicCurriculumRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

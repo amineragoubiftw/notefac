@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { universities as baseUniversities, type ModuleDef, type UniversityDef } from "./lmd-data";
 import type { CustomSemester } from "./custom-workspace";
+import { readDesktopCatalog, refreshDesktopCatalog } from "./desktop-curriculum";
 
 export interface ProposedModule { name: string; coef: number; credits: number; weights: { examen: number; ds: number; cc: number } }
 export interface ProposedUE { name: string; coef: number; credits: number; modules: ProposedModule[] }
@@ -47,7 +48,7 @@ export function mergeProposals(base: UniversityDef[], proposals: Proposal[]): Un
 }
 
 async function fetchApproved(): Promise<Proposal[]> {
-  const { data, error } = await supabase.from("curriculum_proposals").select("id, university_id, institute_id, major_name, semesters").eq("status", "approved").order("created_at");
+  const { data, error } = await supabase.from("curriculum_proposals").select("id, university_id, institute_id, major_name, semesters").eq("status", "approved").order("created_at").abortSignal(AbortSignal.timeout(10_000));
   if (error) throw error;
   const rows = (data ?? []) as unknown as Proposal[];
   try { localStorage.setItem(CACHE_KEY, JSON.stringify(rows)); } catch { /* ignore */ }
@@ -59,12 +60,31 @@ function cached(): Proposal[] {
 
 /** Official curricula plus approved community additions (cached for offline use). */
 export function useCurriculum(): UniversityDef[] {
+  const desktop = import.meta.env.VITE_DESKTOP === "true";
+  const { data: catalog } = useQuery({
+    queryKey: ["desktop-official-catalog"],
+    queryFn: refreshDesktopCatalog,
+    enabled: desktop,
+    initialData: desktop ? readDesktopCatalog : undefined,
+    initialDataUpdatedAt: 0,
+    staleTime: 60_000,
+    refetchInterval: desktop ? 60_000 : false,
+    refetchOnWindowFocus: desktop,
+    refetchOnReconnect: true,
+    retry: false,
+  });
   const { data } = useQuery({
     queryKey: ["approved-curricula"],
     queryFn: async () => { try { return await fetchApproved(); } catch (e) { console.warn("[curriculum] using cache", e); return cached(); } },
     staleTime: 5 * 60_000,
+    initialData: desktop ? cached : undefined,
+    initialDataUpdatedAt: 0,
+    refetchInterval: desktop ? 60_000 : false,
+    refetchOnReconnect: true,
+    retry: false,
   });
-  return data && data.length ? mergeProposals(baseUniversities, data) : baseUniversities;
+  const base = desktop && catalog ? catalog : baseUniversities;
+  return data && data.length ? mergeProposals(base, data) : base;
 }
 
 export async function submitProposal(p: Omit<Proposal, "id">) {
