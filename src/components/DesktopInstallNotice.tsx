@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogPortal, DialogOverlay, DialogClose, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Content } from "@radix-ui/react-dialog";
 
-const INSTALLER_URL = "https://github.com/amineragoubiftw/notefac/releases/download/v1.0.1/installer.exe";
+const INSTALLER_URL = "https://github.com/amineragoubiftw/notefac/releases/download/v1.0.2/installer.msi";
 
 export function DesktopInstallNotice() {
   const [visible, setVisible] = useState(false);
